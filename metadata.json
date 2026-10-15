@@ -1,0 +1,6 @@
+{
+  "name": "SI-IRIGASI Nagekeo",
+  "description": "Sistem Informasi Database Irigasi & e-PAKSI Dinas Pekerjaan Umum dan Penataan Ruang (PUPR) Kabupaten Nagekeo, Nusa Tenggara Timur.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
