@@ -8,7 +8,8 @@ import {
   Calculator, 
   LayoutDashboard, 
   Database, 
-  Map as MapIcon 
+  Map as MapIcon,
+  Table
 } from 'lucide-react';
 
 export type ActiveTab = 'dashboard' | 'database' | 'map' | 'kalkulator-iksi';
@@ -18,6 +19,7 @@ interface HeaderProps {
   setActiveTab: (tab: ActiveTab) => void;
   onOpenAddModal: () => void;
   onOpenExportModal: () => void;
+  onOpenGoogleSheetModal: () => void;
   onOpenPrintView: () => void;
   totalDI: number;
   totalLuasFungsional: number;
@@ -28,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   onOpenAddModal,
   onOpenExportModal,
+  onOpenGoogleSheetModal,
   onOpenPrintView,
   totalDI,
   totalLuasFungsional,
@@ -97,6 +100,16 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Download className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Data / CSV</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onOpenGoogleSheetModal}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-300 bg-emerald-950/60 hover:bg-emerald-900/80 hover:text-white rounded-md border border-emerald-700/60 transition-colors"
+              title="Sinkronisasi Webhook Google Sheets"
+            >
+              <Table className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">Google Sheet</span>
             </button>
 
             <button

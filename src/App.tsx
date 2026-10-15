@@ -9,7 +9,9 @@ import { IrrigationDetailModal } from './components/IrrigationDetailModal';
 import { IrrigationFormModal } from './components/IrrigationFormModal';
 import { IksiCalculatorModal } from './components/IksiCalculatorModal';
 import { DataExportImportModal } from './components/DataExportImportModal';
+import { GoogleSheetSyncModal } from './components/GoogleSheetSyncModal';
 import { PrintReportView } from './components/PrintReportView';
+import { googleSheetService } from './services/googleSheetService';
 
 export default function App() {
   const [data, setData] = useState<DaerahIrigasi[]>([]);
@@ -24,6 +26,7 @@ export default function App() {
   
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isGoogleSheetOpen, setIsGoogleSheetOpen] = useState(false);
   
   const [isPrintView, setIsPrintView] = useState(false);
   const [singlePrintDI, setSinglePrintDI] = useState<DaerahIrigasi | null>(null);
@@ -62,15 +65,22 @@ export default function App() {
       setSelectedDI(saved);
     }
     setIsFormOpen(false);
+
+    // Auto-sync single record to Google Sheet if enabled
+    googleSheetService.sendRecordEvent(saved, 'UPSERT');
   };
 
   const handleDeleteDI = (id: string, nama: string) => {
     if (window.confirm(`Apakah Anda yakin ingin menghapus data "${nama}"?`)) {
+      const deletedItem = data.find((d) => d.id === id);
       const updated = storageService.deleteDI(id);
       setData(updated);
       if (selectedDI?.id === id) {
         setIsDetailOpen(false);
         setSelectedDI(null);
+      }
+      if (deletedItem) {
+        googleSheetService.sendRecordEvent(deletedItem, 'DELETE');
       }
     }
   };
@@ -119,6 +129,7 @@ export default function App() {
         }}
         onOpenAddModal={handleOpenAddModal}
         onOpenExportModal={() => setIsExportOpen(true)}
+        onOpenGoogleSheetModal={() => setIsGoogleSheetOpen(true)}
         onOpenPrintView={handlePrintAll}
         totalDI={totalDI}
         totalLuasFungsional={totalLuasFungsional}
@@ -207,6 +218,12 @@ export default function App() {
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
         onDataUpdated={(newData) => setData(newData)}
+      />
+
+      <GoogleSheetSyncModal
+        isOpen={isGoogleSheetOpen}
+        onClose={() => setIsGoogleSheetOpen(false)}
+        data={data}
       />
 
     </div>
