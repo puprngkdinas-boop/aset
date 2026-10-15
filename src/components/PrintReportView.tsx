@@ -100,10 +100,9 @@ export const PrintReportView: React.FC<PrintReportViewProps> = ({
                 <th className="border border-slate-900 p-1.5 w-7">No</th>
                 <th className="border border-slate-900 p-1.5 text-left">Nama Daerah Irigasi</th>
                 <th className="border border-slate-900 p-1.5">Kode DI</th>
-                <th className="border border-slate-900 p-1.5 text-left">Kecamatan / Desa</th>
-                <th className="border border-slate-900 p-1.5">Wenang</th>
-                <th className="border border-slate-900 p-1.5 text-left">Sumber Air</th>
-                <th className="border border-slate-900 p-1.5 text-right">Luas Baku (Ha)</th>
+                <th className="border border-slate-900 p-1.5 text-left">Kecamatan</th>
+                <th className="border border-slate-900 p-1.5 text-left">Bangunan Utama (Headworks)</th>
+                <th className="border border-slate-900 p-1.5 text-left">Bangunan Pelengkap</th>
                 <th className="border border-slate-900 p-1.5 text-right">Luas Fung. (Ha)</th>
                 <th className="border border-slate-900 p-1.5">Kondisi Fisik</th>
                 <th className="border border-slate-900 p-1.5 text-right">IKSI (%)</th>
@@ -118,12 +117,19 @@ export const PrintReportView: React.FC<PrintReportViewProps> = ({
                   <td className="border border-slate-900 p-1.5 font-bold text-left">{di.nama}</td>
                   <td className="border border-slate-900 p-1.5 font-mono text-center">{di.kodeDI}</td>
                   <td className="border border-slate-900 p-1.5 text-left">
-                    Kec. {di.kecamatan}, {di.desa}
+                    Kec. {di.kecamatan}
                   </td>
-                  <td className="border border-slate-900 p-1.5 text-center">{di.kewenangan}</td>
-                  <td className="border border-slate-900 p-1.5 text-left">{di.sumberAir}</td>
-                  <td className="border border-slate-900 p-1.5 text-right font-mono tabular-nums">
-                    {di.luasBaku.toLocaleString('id-ID')}
+                  <td className="border border-slate-900 p-1.5 text-left">
+                    <div className="font-semibold">{di.bangunanUtama?.nama || di.bangunanUtama?.tipe}</div>
+                    <div className="text-[9px] text-slate-600">
+                      Mercu L:{di.bangunanUtama?.lebarBendungM}m, H:{di.bangunanUtama?.tinggiMercuM}m · {di.bangunanUtama?.jumlahPintuPengambilan || 0} Intake
+                    </div>
+                  </td>
+                  <td className="border border-slate-900 p-1.5 text-left">
+                    <div>Jl. Insp: {di.bangunanPelengkap?.jalanInspeksi?.panjangKm || 0} km ({di.bangunanPelengkap?.jalanInspeksi?.jenisPerkerasan || '-'})</div>
+                    <div className="text-[9px] text-slate-600">
+                      Jemb. Tani: {di.bangunanPelengkap?.jembatanDesaTani?.jumlahUnit || 0} · Talang/Siphon: {(di.bangunanPelengkap?.bangunanSilangDetail?.talang || 0) + (di.bangunanPelengkap?.bangunanSilangDetail?.siphon || 0)}
+                    </div>
                   </td>
                   <td className="border border-slate-900 p-1.5 text-right font-mono font-bold tabular-nums">
                     {di.luasFungsional.toLocaleString('id-ID')}
@@ -146,9 +152,6 @@ export const PrintReportView: React.FC<PrintReportViewProps> = ({
               <tr className="bg-slate-100 font-bold border-t-2 border-slate-900">
                 <td colSpan={6} className="border border-slate-900 p-2 text-center uppercase">
                   Jumlah Total / Rata-rata
-                </td>
-                <td className="border border-slate-900 p-2 text-right font-mono tabular-nums">
-                  {totalBaku.toLocaleString('id-ID')} Ha
                 </td>
                 <td className="border border-slate-900 p-2 text-right font-mono tabular-nums">
                   {totalFungsional.toLocaleString('id-ID')} Ha

@@ -1,7 +1,7 @@
 import { DaerahIrigasi } from '../types/irigasi';
 import { INITIAL_DAERAH_IRIGASI } from '../data/initialData';
 
-const STORAGE_KEY = 'si_irigasi_nagekeo_data_v1';
+const STORAGE_KEY = 'si_irigasi_nagekeo_data_v2';
 
 export const storageService = {
   getData(): DaerahIrigasi[] {
@@ -16,7 +16,20 @@ export const storageService = {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DAERAH_IRIGASI));
         return INITIAL_DAERAH_IRIGASI;
       }
-      return parsed;
+
+      // Merge defaults if bangunanPelengkap is missing from older stored records
+      const merged = parsed.map((item) => {
+        const foundInitial = INITIAL_DAERAH_IRIGASI.find((d) => d.id === item.id);
+        if (!item.bangunanPelengkap && foundInitial?.bangunanPelengkap) {
+          return {
+            ...item,
+            bangunanPelengkap: foundInitial.bangunanPelengkap,
+          };
+        }
+        return item;
+      });
+
+      return merged;
     } catch (err) {
       console.error('Gagal membaca data dari localStorage:', err);
       return INITIAL_DAERAH_IRIGASI;
@@ -82,11 +95,29 @@ export const storageService = {
       'Luas Potensial (Ha)',
       'Luas Fungsional (Ha)',
       'Kondisi Fisik',
-      'Nilai IKSI',
+      'Nilai IKSI (%)',
       'Kategori IKSI',
       'Tipe Bangunan Utama',
       'Nama Bendung/Intake',
+      'Bahan Konstruksi',
+      'Tipe Mercu',
+      'Lebar Mercu (m)',
+      'Tinggi Mercu (m)',
+      'Elevasi Mercu (m dpl)',
+      'Kolam Olak',
+      'Pintu Pengambilan (Unit)',
+      'Pintu Kuras (Unit)',
+      'Kantong Lumpur',
       'Debit (m3/s)',
+      'Jembatan Desa/Tani (Unit)',
+      'Kubangan Ternak (Unit)',
+      'Tangga Cuci Petani (Unit)',
+      'Pelimpah Samping (Unit)',
+      'Jalan Inspeksi (km)',
+      'Perkerasan Jalan',
+      'Talang (Unit)',
+      'Siphon (Unit)',
+      'Gorong-gorong (Unit)',
       'Panjang Primer (m)',
       'Panjang Sekunder (m)',
       'Panjang Tersier (m)',
@@ -116,7 +147,25 @@ export const storageService = {
       `"${d.kategoriIKSI}"`,
       `"${d.bangunanUtama?.tipe || ''}"`,
       `"${(d.bangunanUtama?.nama || '').replace(/"/g, '""')}"`,
+      `"${d.bangunanUtama?.bahanKonstruksi || ''}"`,
+      `"${d.bangunanUtama?.tipeMercu || ''}"`,
+      d.bangunanUtama?.lebarBendungM || 0,
+      d.bangunanUtama?.tinggiMercuM || 0,
+      d.bangunanUtama?.elevasiMercuMdpl || 0,
+      `"${d.bangunanUtama?.tipeKolamOlak || ''}"`,
+      d.bangunanUtama?.jumlahPintuPengambilan || 0,
+      d.bangunanUtama?.jumlahPintuKuras || 0,
+      d.bangunanUtama?.kantongLumpur ? 'Ya' : 'Tidak',
       d.bangunanUtama?.debitRataRataM3s || 0,
+      d.bangunanPelengkap?.jembatanDesaTani?.jumlahUnit || 0,
+      d.bangunanPelengkap?.kubanganCuciTernak?.jumlahUnit || 0,
+      d.bangunanPelengkap?.tanggaCuciMandiPetani?.jumlahUnit || 0,
+      d.bangunanPelengkap?.pelimpahSampingWasteweir?.jumlahUnit || 0,
+      d.bangunanPelengkap?.jalanInspeksi?.panjangKm || 0,
+      `"${d.bangunanPelengkap?.jalanInspeksi?.jenisPerkerasan || ''}"`,
+      d.bangunanPelengkap?.bangunanSilangDetail?.talang || d.jaringanSaluran?.jumlahTalangSiphon || 0,
+      d.bangunanPelengkap?.bangunanSilangDetail?.siphon || 0,
+      d.bangunanPelengkap?.bangunanSilangDetail?.gorongGorong || d.jaringanSaluran?.jumlahGorongGorong || 0,
       d.jaringanSaluran?.panjangPrimerM || 0,
       d.jaringanSaluran?.panjangSekunderM || 0,
       d.jaringanSaluran?.panjangTersierM || 0,

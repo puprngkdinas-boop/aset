@@ -14,7 +14,11 @@ import {
   AlertTriangle,
   Calendar,
   Building,
-  Activity
+  Activity,
+  ShieldAlert,
+  Compass,
+  Footprints,
+  Car
 } from 'lucide-react';
 import { analisaKondisiIrigasiDenganAI, AnalisisHasil } from '../services/geminiService';
 
@@ -26,7 +30,15 @@ interface IrrigationDetailModalProps {
   onPrintSingle: (di: DaerahIrigasi) => void;
 }
 
-type DetailTab = 'ringkasan' | 'saluran' | 'epaksi' | 'p3a' | 'usulan' | 'analisis-ai';
+type DetailTab = 
+  | 'ringkasan' 
+  | 'bangunan-utama' 
+  | 'bangunan-pelengkap' 
+  | 'saluran' 
+  | 'epaksi' 
+  | 'p3a' 
+  | 'usulan' 
+  | 'analisis-ai';
 
 export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
   di,
@@ -53,7 +65,7 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
     }
   };
 
-  const getKondisiColorClass = (kondisi: string) => {
+  const getKondisiColor = (kondisi: string) => {
     switch (kondisi) {
       case 'Baik':
         return 'text-emerald-700 bg-emerald-50 border-emerald-200';
@@ -66,9 +78,11 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
     }
   };
 
+  const bp = di.bangunanPelengkap;
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 no-print">
-      <div className="bg-white w-full max-w-4xl rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white w-full max-w-5xl rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Modal Header */}
         <div className="bg-slate-900 text-white p-5 border-b border-slate-800 flex items-start justify-between gap-4">
@@ -116,62 +130,86 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Tab Header */}
-        <div className="bg-slate-100 border-b border-slate-200 px-5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        {/* Tab Navigation Header */}
+        <div className="bg-slate-100 border-b border-slate-200 px-5 flex items-center gap-1 overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setActiveTab('ringkasan')}
             className={`py-3 px-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'ringkasan'
-                ? 'border-amber-500 text-slate-900'
+                ? 'border-amber-500 text-slate-900 bg-white/70'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            Ringkasan Teknis
+            Ringkasan
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('bangunan-utama')}
+            className={`py-3 px-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+              activeTab === 'bangunan-utama'
+                ? 'border-amber-500 text-slate-900 bg-white/70'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Building className="w-3.5 h-3.5 text-amber-600" />
+            <span>Bangunan Utama</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('bangunan-pelengkap')}
+            className={`py-3 px-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+              activeTab === 'bangunan-pelengkap'
+                ? 'border-amber-500 text-slate-900 bg-white/70'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5 text-amber-600" />
+            <span>Bangunan Pelengkap</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('saluran')}
             className={`py-3 px-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'saluran'
-                ? 'border-amber-500 text-slate-900'
+                ? 'border-amber-500 text-slate-900 bg-white/70'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            Bangunan & Saluran
+            Saluran Jaringan
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('epaksi')}
             className={`py-3 px-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'epaksi'
-                ? 'border-amber-500 text-slate-900'
+                ? 'border-amber-500 text-slate-900 bg-white/70'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            Penilaian IKSI (e-PAKSI)
+            e-PAKSI & IKSI
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('p3a')}
             className={`py-3 px-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'p3a'
-                ? 'border-amber-500 text-slate-900'
+                ? 'border-amber-500 text-slate-900 bg-white/70'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            Kelembagaan P3A
+            P3A / GP3A
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('usulan')}
             className={`py-3 px-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'usulan'
-                ? 'border-amber-500 text-slate-900'
+                ? 'border-amber-500 text-slate-900 bg-white/70'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            Rencana Penanganan
+            Usulan Penanganan
           </button>
           <button
             type="button"
@@ -181,12 +219,12 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
             }}
             className={`py-3 px-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               activeTab === 'analisis-ai'
-                ? 'border-amber-500 text-amber-900'
+                ? 'border-amber-500 text-amber-900 bg-white/70'
                 : 'border-transparent text-amber-700 hover:text-amber-900'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Asisten Analisis PUPR</span>
+            <span>Asisten PUPR</span>
           </button>
         </div>
 
@@ -196,8 +234,6 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
           {/* TAB 1: RINGKASAN */}
           {activeTab === 'ringkasan' && (
             <div className="space-y-6">
-              
-              {/* Top Highlights Strip */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                   <span className="text-[11px] text-slate-500">Kondisi Fisik</span>
@@ -233,9 +269,7 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                 </div>
               </div>
 
-              {/* Data Specifications Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
                 <div className="border border-slate-200 rounded-xl p-4 space-y-3">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 border-b border-slate-100 pb-2">
                     <MapPin className="w-3.5 h-3.5 text-amber-600" />
@@ -244,7 +278,7 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <span className="text-slate-500">Kabupaten:</span>
-                      <strong className="text-slate-800">Nagekeo, NTT</strong>
+                      <strong className="text-slate-800">Nagekeo, Flores, NTT</strong>
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <span className="text-slate-500">Kecamatan:</span>
@@ -274,20 +308,18 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                 <div className="border border-slate-200 rounded-xl p-4 space-y-3">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 border-b border-slate-100 pb-2">
                     <Building className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Bangunan Utama & Hidrolika</span>
+                    <span>Bangunan Utama Singkat</span>
                   </h3>
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between py-1 border-b border-slate-50">
-                      <span className="text-slate-500">Tipe Bangunan:</span>
-                      <strong className="text-slate-800">{di.bangunanUtama?.tipe}</strong>
+                      <span className="text-slate-500">Nama & Tipe:</span>
+                      <strong className="text-slate-800">{di.bangunanUtama?.nama} ({di.bangunanUtama?.tipe})</strong>
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-50">
-                      <span className="text-slate-500">Nama Bendung / Intake:</span>
-                      <strong className="text-slate-800">{di.bangunanUtama?.nama}</strong>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <span className="text-slate-500">Sumber Air:</span>
-                      <strong className="text-slate-800">{di.sumberAir}</strong>
+                      <span className="text-slate-500">Kondisi Bangunan Utama:</span>
+                      <strong className={`font-semibold ${
+                        di.bangunanUtama?.kondisi === 'Baik' ? 'text-emerald-700' : 'text-amber-700'
+                      }`}>{di.bangunanUtama?.kondisi}</strong>
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <span className="text-slate-500">Lebar & Tinggi Mercu:</span>
@@ -298,21 +330,19 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <span className="text-slate-500">Debit Rata-rata:</span>
                       <strong className="font-mono text-slate-800 tabular-nums">
-                        {di.bangunanUtama?.debitRataRataM3s} m³/detik
+                        {di.bangunanUtama?.debitRataRataM3s} m³/s
                       </strong>
                     </div>
                     <div className="flex justify-between py-1">
-                      <span className="text-slate-500">Kantong Lumpur:</span>
-                      <strong className="text-slate-800">
-                        {di.bangunanUtama?.kantongLumpur ? 'Tersedia' : 'Tidak Ada'}
+                      <span className="text-slate-500">Jalan Inspeksi:</span>
+                      <strong className="font-mono text-slate-800 tabular-nums">
+                        {bp?.jalanInspeksi?.panjangKm || 0} km ({bp?.jalanInspeksi?.jenisPerkerasan || '-'})
                       </strong>
                     </div>
                   </div>
                 </div>
-
               </div>
 
-              {/* Catatan O&P */}
               {di.catatanOp && (
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs">
                   <span className="font-bold text-slate-800 block mb-1">Catatan Operasi & Pemeliharaan:</span>
@@ -322,7 +352,303 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
             </div>
           )}
 
-          {/* TAB 2: SALURAN & BANGUNAN */}
+          {/* TAB 2: BANGUNAN UTAMA (HEADWORKS) LENGKAP */}
+          {activeTab === 'bangunan-utama' && (
+            <div className="space-y-6">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-xs text-slate-500">Nama Bangunan Utama:</span>
+                  <h3 className="text-base font-bold text-slate-900 mt-0.5">
+                    {di.bangunanUtama?.nama}
+                  </h3>
+                  <div className="text-xs text-slate-600 mt-0.5">
+                    Tipe: <strong className="font-semibold text-slate-800">{di.bangunanUtama?.tipe}</strong> · Sumber Air: <strong className="font-semibold text-slate-800">{di.sumberAir}</strong>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-slate-500 block">Kondisi Bangunan Utama</span>
+                  <span className={`inline-block px-3 py-1 rounded-md text-xs font-bold border mt-0.5 ${getKondisiColor(di.bangunanUtama?.kondisi || 'Baik')}`}>
+                    {di.bangunanUtama?.kondisi}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* Parameter Mercu & Tubuh Bendung */}
+                <div className="border border-slate-200 rounded-xl p-4 space-y-3 bg-white">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                    <Building className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Tubuh Bendung & Hidrolika Mercu</span>
+                  </h4>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Tipe Bentuk Mercu:</span>
+                      <strong className="text-slate-800">{di.bangunanUtama?.tipeMercu || 'Ogee'}</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Bahan Konstruksi:</span>
+                      <strong className="text-slate-800">{di.bangunanUtama?.bahanKonstruksi || 'Pasangan Batu'}</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Lebar Mercu Bendung:</span>
+                      <strong className="font-mono text-slate-800 tabular-nums">{di.bangunanUtama?.lebarBendungM} meter</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Tinggi Mercu Bendung:</span>
+                      <strong className="font-mono text-slate-800 tabular-nums">{di.bangunanUtama?.tinggiMercuM} meter</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Elevasi Mercu Bendung:</span>
+                      <strong className="font-mono text-slate-800 tabular-nums">
+                        {di.bangunanUtama?.elevasiMercuMdpl ? `+${di.bangunanUtama.elevasiMercuMdpl} m dpl` : '-'}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Tipe Kolam Olak (Peredam Energi):</span>
+                      <strong className="text-slate-800">{di.bangunanUtama?.tipeKolamOlak || 'USBR Type II/III'}</strong>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-500">Debit Rata-rata Tercatat:</span>
+                      <strong className="font-mono text-slate-800 tabular-nums">{di.bangunanUtama?.debitRataRataM3s} m³/detik</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pintu Pengambilan, Penguras & Kantong Lumpur */}
+                <div className="border border-slate-200 rounded-xl p-4 space-y-3 bg-white">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                    <Droplet className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Pintu Pengatur & Kantong Lumpur</span>
+                  </h4>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Pintu Pengambilan (Intake):</span>
+                      <strong className="font-mono text-slate-800 tabular-nums">
+                        {di.bangunanUtama?.jumlahPintuPengambilan || 0} Unit ({di.bangunanUtama?.tipePintuPengambilan || 'Stang Ulir Ganda'})
+                      </strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Pintu Penguras (Sluice Gate):</span>
+                      <strong className="font-mono text-slate-800 tabular-nums">
+                        {di.bangunanUtama?.jumlahPintuKuras || 0} Unit ({di.bangunanUtama?.tipePintuKuras || 'Sorong Baja'})
+                      </strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Fasilitas Kantong Lumpur:</span>
+                      <strong className="text-slate-800">
+                        {di.bangunanUtama?.kantongLumpur ? 'Tersedia' : 'Tidak Ada'}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Kapasitas Kantong Lumpur:</span>
+                      <strong className="font-mono text-slate-800 tabular-nums">
+                        {di.bangunanUtama?.volumeKantongLumpurM3 ? `${di.bangunanUtama.volumeKantongLumpurM3} m³` : '-'}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-50">
+                      <span className="text-slate-500">Papan Duga Muka Air (Peilschaal):</span>
+                      <strong className="text-slate-800">
+                        {di.bangunanUtama?.papanDugaPeilschaal ? 'Terpasang' : 'Belum Ada'}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-500">Jembatan Pelayan / Inspeksi Bendung:</span>
+                      <strong className="text-slate-800">
+                        {di.bangunanUtama?.jembatanPelayanBendung ? 'Tersedia di atas mercu' : 'Tidak Tersedia'}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: BANGUNAN PELENGKAP & BANGUNAN SILANG */}
+          {activeTab === 'bangunan-pelengkap' && (
+            <div className="space-y-6">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* Fasilitas Sosial, Petani & Pengamanan Saluran */}
+                <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                    <Users className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Fasilitas Pelengkap Masyarakat & Pertanian</span>
+                  </h4>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
+                      <div>
+                        <span className="font-medium text-slate-800 block">Jembatan Desa / Jembatan Tani</span>
+                        <span className="text-[11px] text-slate-400">Akses penyeberangan petani & alsintan</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-bold text-slate-900 block tabular-nums">
+                          {bp?.jembatanDesaTani?.jumlahUnit || 0} Unit
+                        </span>
+                        <span className="text-[10px] text-slate-500">{bp?.jembatanDesaTani?.kondisi || 'Baik'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
+                      <div>
+                        <span className="font-medium text-slate-800 block">Kubangan Cuci & Minum Ternak</span>
+                        <span className="text-[11px] text-slate-400">Fasilitas ternak sapi/kerbau petani</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-bold text-slate-900 block tabular-nums">
+                          {bp?.kubanganCuciTernak?.jumlahUnit || 0} Unit
+                        </span>
+                        <span className="text-[10px] text-slate-500">{bp?.kubanganCuciTernak?.kondisi || 'Baik'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
+                      <div>
+                        <span className="font-medium text-slate-800 block">Tangga Cuci & Mandi Petani</span>
+                        <span className="text-[11px] text-slate-400">Akses aman petani ke badan saluran</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-bold text-slate-900 block tabular-nums">
+                          {bp?.tanggaCuciMandiPetani?.jumlahUnit || 0} Unit
+                        </span>
+                        <span className="text-[10px] text-slate-500">{bp?.tanggaCuciMandiPetani?.kondisi || 'Baik'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
+                      <div>
+                        <span className="font-medium text-slate-800 block">Pelimpah Samping (Wasteweir)</span>
+                        <span className="text-[11px] text-slate-400">Pengaman debit banjir saluran</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-bold text-slate-900 block tabular-nums">
+                          {bp?.pelimpahSampingWasteweir?.jumlahUnit || 0} Unit
+                        </span>
+                        <span className="text-[10px] text-slate-500">{bp?.pelimpahSampingWasteweir?.kondisi || 'Baik'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5">
+                      <div>
+                        <span className="font-medium text-slate-800 block">Kisi Saringan Sampah (Trashrack)</span>
+                        <span className="text-[11px] text-slate-400">Penyaring sampah di mulut intake/siphon</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-bold text-slate-900 block tabular-nums">
+                          {bp?.trashrackSaringanSampah?.jumlahUnit || 0} Unit
+                        </span>
+                        <span className="text-[10px] text-slate-500">{bp?.trashrackSaringanSampah?.kondisi || 'Baik'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Prasarana O&P, Jalan Inspeksi & Patok Sempadan */}
+                <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                    <Compass className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Prasarana O&P, Patok & Jalan Inspeksi</span>
+                  </h4>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
+                      <div>
+                        <span className="font-medium text-slate-800 block">Jalan Inspeksi Irigasi</span>
+                        <span className="text-[11px] text-slate-400">
+                          Lebar {bp?.jalanInspeksi?.lebarM || 3.0} m · {bp?.jalanInspeksi?.jenisPerkerasan || 'Rabat Beton'}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-bold text-slate-900 block tabular-nums">
+                          {bp?.jalanInspeksi?.panjangKm || 0} Km
+                        </span>
+                        <span className="text-[10px] text-slate-500">{bp?.jalanInspeksi?.kondisi || 'Baik'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
+                      <div>
+                        <span className="font-medium text-slate-800 block">Gardu Jaga / Rumah Pintu Air</span>
+                        <span className="text-[11px] text-slate-400">Pos juru & petugas operasi bendung</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-bold text-slate-900 block tabular-nums">
+                          {bp?.garduJagaRumahPintu?.jumlahUnit || 0} Unit
+                        </span>
+                        <span className="text-[10px] text-slate-500">{bp?.garduJagaRumahPintu?.kondisi || 'Baik'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
+                      <div>
+                        <span className="font-medium text-slate-800 block">Papan Duga Air (Peilschaal)</span>
+                        <span className="text-[11px] text-slate-400">Pengukur tinggi muka air saluran</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-bold text-slate-900 block tabular-nums">
+                          {bp?.peilschaalSaluran?.jumlahUnit || 0} Unit
+                        </span>
+                        <span className="text-[10px] text-slate-500">{bp?.peilschaalSaluran?.kondisi || 'Baik'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5">
+                      <div>
+                        <span className="font-medium text-slate-800 block">Patok Hektometer (Hm) & Sempadan</span>
+                        <span className="text-[11px] text-slate-400">Batas Right of Way (RoW) saluran PUPR</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-bold text-slate-900 block tabular-nums">
+                          {bp?.patokHektometerSempadan?.jumlahUnit || 0} Patok
+                        </span>
+                        <span className="text-[10px] text-slate-500">{bp?.patokHektometerSempadan?.kondisi || 'Baik'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Bangunan Silang Detail (Cross Structures) */}
+              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Inventarisasi Bangunan Silang Saluran (Cross Structures)
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div className="p-3 bg-white rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block">Talang Air (Aqueduct)</span>
+                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums">
+                      {bp?.bangunanSilangDetail?.talang || 0} Unit
+                    </strong>
+                  </div>
+                  <div className="p-3 bg-white rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block">Siphon (Inverted Siphon)</span>
+                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums">
+                      {bp?.bangunanSilangDetail?.siphon || 0} Unit
+                    </strong>
+                  </div>
+                  <div className="p-3 bg-white rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block">Gorong-gorong Pembawa</span>
+                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums">
+                      {bp?.bangunanSilangDetail?.gorongGorong || di.jaringanSaluran?.jumlahGorongGorong || 0} Unit
+                    </strong>
+                  </div>
+                  <div className="p-3 bg-white rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block">Terjunan / Got Miring</span>
+                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums">
+                      {bp?.bangunanSilangDetail?.gotMiringTerjunan || 0} Unit
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 4: SALURAN & BANGUNAN PEMBAWA */}
           {activeTab === 'saluran' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -357,10 +683,10 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                 </div>
               </div>
 
-              {/* Rincian Bangunan Air */}
+              {/* Rincian Bangunan Pembagi */}
               <div className="border border-slate-200 rounded-xl p-5 space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Inventarisasi Bangunan Pembawa & Pengatur Air
+                  Bangunan Pengatur & Pembagi Aliran Air
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
                   <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
@@ -381,30 +707,12 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                       {di.jaringanSaluran?.jumlahBangunanBagiSadap || 0} Unit
                     </strong>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <span className="text-slate-500 block">Talang & Siphon</span>
-                    <strong className="text-base font-mono tabular-nums text-slate-900">
-                      {di.jaringanSaluran?.jumlahTalangSiphon || 0} Unit
-                    </strong>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <span className="text-slate-500 block">Gorong-gorong</span>
-                    <strong className="text-base font-mono tabular-nums text-slate-900">
-                      {di.jaringanSaluran?.jumlahGorongGorong || 0} Unit
-                    </strong>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <span className="text-slate-500 block">Pintu Pengambilan</span>
-                    <strong className="text-base font-mono tabular-nums text-slate-900">
-                      {di.bangunanUtama?.jumlahPintuPengambilan || 0} Pintu
-                    </strong>
-                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB 3: e-PAKSI & IKSI */}
+          {/* TAB 5: e-PAKSI & IKSI */}
           {activeTab === 'epaksi' && (
             <div className="space-y-6">
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -426,14 +734,12 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                 </div>
               </div>
 
-              {/* 6 Aspects Breakdown */}
               <div className="space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                   Rincian 6 Parameter Penilaian e-PAKSI
                 </h3>
 
                 <div className="space-y-3">
-                  {/* 1. Prasarana Fisik */}
                   <div className="border border-slate-200 rounded-lg p-3.5">
                     <div className="flex items-center justify-between text-xs mb-1.5">
                       <span className="font-medium text-slate-800">1. Prasarana Fisik (Maks 45%)</span>
@@ -449,7 +755,6 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* 2. Produktivitas Tanam */}
                   <div className="border border-slate-200 rounded-lg p-3.5">
                     <div className="flex items-center justify-between text-xs mb-1.5">
                       <span className="font-medium text-slate-800">2. Produktivitas Tanam (Maks 15%)</span>
@@ -465,7 +770,6 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* 3. Sarana Penunjang */}
                   <div className="border border-slate-200 rounded-lg p-3.5">
                     <div className="flex items-center justify-between text-xs mb-1.5">
                       <span className="font-medium text-slate-800">3. Sarana Penunjang (Maks 10%)</span>
@@ -481,7 +785,6 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* 4. Organisasi Personalia */}
                   <div className="border border-slate-200 rounded-lg p-3.5">
                     <div className="flex items-center justify-between text-xs mb-1.5">
                       <span className="font-medium text-slate-800">4. Organisasi Personalia (Maks 15%)</span>
@@ -497,7 +800,6 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* 5. Dokumentasi */}
                   <div className="border border-slate-200 rounded-lg p-3.5">
                     <div className="flex items-center justify-between text-xs mb-1.5">
                       <span className="font-medium text-slate-800">5. Dokumentasi PAI (Maks 5%)</span>
@@ -513,7 +815,6 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* 6. Kelembagaan P3A */}
                   <div className="border border-slate-200 rounded-lg p-3.5">
                     <div className="flex items-center justify-between text-xs mb-1.5">
                       <span className="font-medium text-slate-800">6. Kelembagaan P3A (Maks 10%)</span>
@@ -533,7 +834,7 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
             </div>
           )}
 
-          {/* TAB 4: P3A */}
+          {/* TAB 6: P3A */}
           {activeTab === 'p3a' && (
             <div className="space-y-6">
               <div className="border border-slate-200 rounded-xl p-5 space-y-4">
@@ -590,7 +891,7 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
             </div>
           )}
 
-          {/* TAB 5: USULAN PENANGANAN */}
+          {/* TAB 7: USULAN PENANGANAN */}
           {activeTab === 'usulan' && (
             <div className="space-y-6">
               <div className="border border-slate-200 rounded-xl p-5 space-y-4">
@@ -627,7 +928,7 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
             </div>
           )}
 
-          {/* TAB 6: AI / PUPR ASSISTANT */}
+          {/* TAB 8: AI / PUPR ASSISTANT */}
           {activeTab === 'analisis-ai' && (
             <div className="space-y-5">
               <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-4">

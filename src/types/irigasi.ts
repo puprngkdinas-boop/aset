@@ -31,11 +31,68 @@ export interface BangunanUtama {
   nama: string;
   lebarBendungM: number;
   tinggiMercuM: number;
+  tipeMercu?: 'Ogee' | 'Bulat' | 'Vlugter' | 'Trapesium';
+  bahanKonstruksi?: 'Pasangan Batu' | 'Beton Bertulang' | 'Bronjong' | 'Kombinasi Batu-Beton';
+  elevasiMercuMdpl?: number;
+  tipeKolamOlak?: 'USBR Type II/III' | 'Vlugter' | 'MDO/MDS' | 'Bak Tenggelam';
   kondisi: KondisiFisik;
   jumlahPintuPengambilan: number;
+  tipePintuPengambilan?: 'Sorong Baja' | 'Stang Ulir Ganda' | 'Kayu/Besi Manual';
   jumlahPintuKuras: number;
+  tipePintuKuras?: 'Sorong Baja' | 'Stang Ulir Ganda' | 'Kayu/Besi Manual';
   kantongLumpur: boolean;
+  volumeKantongLumpurM3?: number;
+  kondisiKantongLumpur?: KondisiFisik;
+  papanDugaPeilschaal?: boolean;
+  jembatanPelayanBendung?: boolean;
   debitRataRataM3s: number;
+}
+
+export interface BangunanPelengkap {
+  jembatanDesaTani: {
+    jumlahUnit: number;
+    kondisi: KondisiFisik;
+  };
+  kubanganCuciTernak: {
+    jumlahUnit: number;
+    kondisi: KondisiFisik;
+  };
+  tanggaCuciMandiPetani: {
+    jumlahUnit: number;
+    kondisi: KondisiFisik;
+  };
+  pelimpahSampingWasteweir: {
+    jumlahUnit: number;
+    kondisi: KondisiFisik;
+  };
+  trashrackSaringanSampah: {
+    jumlahUnit: number;
+    kondisi: KondisiFisik;
+  };
+  peilschaalSaluran: {
+    jumlahUnit: number;
+    kondisi: KondisiFisik;
+  };
+  patokHektometerSempadan: {
+    jumlahUnit: number;
+    kondisi: KondisiFisik;
+  };
+  garduJagaRumahPintu: {
+    jumlahUnit: number;
+    kondisi: KondisiFisik;
+  };
+  jalanInspeksi: {
+    panjangKm: number;
+    lebarM: number;
+    jenisPerkerasan: 'Rabat Beton' | 'Aspal' | 'Sirtu/Krikil' | 'Tanah';
+    kondisi: KondisiFisik;
+  };
+  bangunanSilangDetail: {
+    talang: number;
+    siphon: number;
+    gorongGorong: number;
+    gotMiringTerjunan: number;
+  };
 }
 
 export interface JaringanSaluran {
@@ -101,6 +158,7 @@ export interface DaerahIrigasi {
   kategoriIKSI: KategoriIKSI;
   rincianIKSI: RincianIKSI;
   bangunanUtama: BangunanUtama;
+  bangunanPelengkap?: BangunanPelengkap;
   jaringanSaluran: JaringanSaluran;
   dataP3A: DataP3A;
   usulanPenanganan: UsulanPenanganan;

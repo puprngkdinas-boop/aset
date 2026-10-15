@@ -38,6 +38,28 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
     const totalAnggaran = data.reduce((acc, curr) => acc + (curr.usulanPenanganan?.estimasiBiayaRp || 0), 0);
 
+    // Bangunan Utama & Pelengkap Aggregates
+    const totalPintuAir = data.reduce(
+      (acc, curr) => acc + (curr.bangunanUtama?.jumlahPintuPengambilan || 0) + (curr.bangunanUtama?.jumlahPintuKuras || 0),
+      0
+    );
+    const totalJalanInspeksiKm = data.reduce(
+      (acc, curr) => acc + (curr.bangunanPelengkap?.jalanInspeksi?.panjangKm || 0),
+      0
+    );
+    const totalJembatan = data.reduce(
+      (acc, curr) => acc + (curr.bangunanPelengkap?.jembatanDesaTani?.jumlahUnit || 0),
+      0
+    );
+    const totalBangunanSilang = data.reduce(
+      (acc, curr) =>
+        acc +
+        (curr.bangunanPelengkap?.bangunanSilangDetail?.talang || 0) +
+        (curr.bangunanPelengkap?.bangunanSilangDetail?.siphon || 0) +
+        (curr.bangunanPelengkap?.bangunanSilangDetail?.gorongGorong || curr.jaringanSaluran?.jumlahGorongGorong || 0),
+      0
+    );
+
     const kondisiCount = {
       Baik: data.filter((d) => d.kondisiFisik === 'Baik').length,
       'Rusak Ringan': data.filter((d) => d.kondisiFisik === 'Rusak Ringan').length,
@@ -74,6 +96,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       rasioFungsional,
       rataRataIKSI,
       totalAnggaran,
+      totalPintuAir,
+      totalJalanInspeksiKm,
+      totalJembatan,
+      totalBangunanSilang,
       kondisiCount,
       kewenanganCount,
       diKritis,
@@ -203,6 +229,57 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </div>
         </div>
 
+      </div>
+
+      {/* Bangunan Utama & Pelengkap Inventory Strip */}
+      <div className="bg-slate-900 text-white rounded-xl border border-slate-800 p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+              Rekapitulasi Fisik Bangunan Utama & Bangunan Pelengkap
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Inventarisasi aset fisik headworks, jembatan tani, pintu air, dan jalan inspeksi di Nagekeo
+            </p>
+          </div>
+          <span className="text-[11px] font-mono text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md">
+            Permen PUPR No. 12/2015
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 text-xs">
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800/80">
+            <span className="text-slate-400 block text-[11px]">Pintu Pengambilan & Kuras</span>
+            <strong className="text-2xl font-mono font-bold text-white mt-1 block tabular-nums">
+              {stats.totalPintuAir} Unit
+            </strong>
+            <span className="text-[10px] text-slate-400 mt-0.5 block">Di 12 Bangunan Utama</span>
+          </div>
+
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800/80">
+            <span className="text-slate-400 block text-[11px]">Jalan Inspeksi Irigasi</span>
+            <strong className="text-2xl font-mono font-bold text-amber-400 mt-1 block tabular-nums">
+              {stats.totalJalanInspeksiKm.toFixed(1)} Km
+            </strong>
+            <span className="text-[10px] text-slate-400 mt-0.5 block">Rabat Beton & Sirtu</span>
+          </div>
+
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800/80">
+            <span className="text-slate-400 block text-[11px]">Jembatan Desa & Tani</span>
+            <strong className="text-2xl font-mono font-bold text-white mt-1 block tabular-nums">
+              {stats.totalJembatan} Unit
+            </strong>
+            <span className="text-[10px] text-slate-400 mt-0.5 block">Akses Petani & Alsintan</span>
+          </div>
+
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800/80">
+            <span className="text-slate-400 block text-[11px]">Bangunan Silang (Talang/Gorong)</span>
+            <strong className="text-2xl font-mono font-bold text-emerald-400 mt-1 block tabular-nums">
+              {stats.totalBangunanSilang} Unit
+            </strong>
+            <span className="text-[10px] text-slate-400 mt-0.5 block">Talang, Siphon, Gorong-gorong</span>
+          </div>
+        </div>
       </div>
 
       {/* Critical Alert Section (DI Kritis / Rusak Berat) */}
