@@ -11,6 +11,7 @@ import { IksiCalculatorModal } from './components/IksiCalculatorModal';
 import { DataExportImportModal } from './components/DataExportImportModal';
 import { GoogleSheetSyncModal } from './components/GoogleSheetSyncModal';
 import { PrintReportView } from './components/PrintReportView';
+import { ToastContainer, ToastMessage } from './components/Toast';
 import { googleSheetService } from './services/googleSheetService';
 
 export default function App() {
@@ -27,9 +28,26 @@ export default function App() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isGoogleSheetOpen, setIsGoogleSheetOpen] = useState(false);
+  const [isSyncingSheet, setIsSyncingSheet] = useState(false);
   
   const [isPrintView, setIsPrintView] = useState(false);
   const [singlePrintDI, setSinglePrintDI] = useState<DaerahIrigasi | null>(null);
+
+  // Toast notifications state
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const showToast = (
+    message: string,
+    type: 'success' | 'warning' | 'info' | 'error' = 'success',
+    duration = 5000
+  ) => {
+    const id = `toast-${Date.now()}-${Math.random()}`;
+    setToasts((prev) => [...prev, { id, message, type, duration }]);
+  };
+
+  const dismissToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   // Load initial data
   useEffect(() => {
@@ -52,10 +70,11 @@ export default function App() {
     setIsFormOpen(true);
   };
 
-  const handleSaveDI = (saved: DaerahIrigasi) => {
+  // Realtime two-way save: immediately stores locally AND posts to Google Sheet webhook
+  const handleSaveDI = async (saved: DaerahIrigasi) => {
+    const isEdit = data.some((d) => d.id === saved.id);
     let updated: DaerahIrigasi[];
-    const exists = data.some((d) => d.id === saved.id);
-    if (exists) {
+    if (isEdit) {
       updated = storageService.updateDI(saved);
     } else {
       updated = storageService.addDI(saved);
@@ -66,22 +85,84 @@ export default function App() {
     }
     setIsFormOpen(false);
 
-    // Auto-sync single record to Google Sheet if enabled
-    googleSheetService.sendRecordEvent(saved, 'UPSERT');
+    // Instant Google Sheet Sync via embedded Webhook
+    const actionType = isEdit ? 'UPDATE' : 'CREATE';
+    showToast(
+      isEdit
+        ? `Memperbarui "${saved.nama}" dan mengirim perubahan langsung ke Google Sheet...`
+        : `Menyimpan "${saved.nama}" dan memasukkan baris baru langsung ke Google Sheet...`,
+      'info',
+      2500
+    );
+
+    try {
+      const res = await googleSheetService.sendRecordEvent(saved, actionType);
+      if (res.success) {
+        showToast(
+          isEdit
+            ? `✓ Perubahan "${saved.nama}" (${saved.kodeDI}) tersimpan di Web & diperbarui di Google Sheet!`
+            : `✓ Data "${saved.nama}" (${saved.kodeDI}) berhasil disimpan & langsung muncul di Google Sheet!`,
+          'success',
+          5000
+        );
+      } else {
+        showToast(`Tersimpan di web lokal. Catatan Google Sheet: ${res.message}`, 'warning', 6000);
+      }
+    } catch (err: any) {
+      showToast(`Tersimpan di web lokal. Google Sheet: ${err.message}`, 'warning', 6000);
+    }
   };
 
-  const handleDeleteDI = (id: string, nama: string) => {
-    if (window.confirm(`Apakah Anda yakin ingin menghapus data "${nama}"?`)) {
-      const deletedItem = data.find((d) => d.id === id);
+  // Realtime two-way delete: deletes locally AND deletes the exact row in Google Sheet
+  const handleDeleteDI = async (id: string, nama: string) => {
+    const targetDI = data.find((d) => d.id === id);
+    const kode = targetDI?.kodeDI || '';
+
+    if (
+      window.confirm(
+        `Hapus Daerah Irigasi "${nama}" (${kode})?\n\nData akan dihapus dari web dan baris di Google Sheet akan otomatis dihapus secara realtime dua arah.`
+      )
+    ) {
       const updated = storageService.deleteDI(id);
       setData(updated);
       if (selectedDI?.id === id) {
         setIsDetailOpen(false);
         setSelectedDI(null);
       }
-      if (deletedItem) {
-        googleSheetService.sendRecordEvent(deletedItem, 'DELETE');
+
+      if (targetDI) {
+        showToast(`Menghapus "${nama}" dari sistem dan Google Sheet...`, 'info', 2500);
+        try {
+          const res = await googleSheetService.sendRecordEvent(targetDI, 'DELETE');
+          if (res.success) {
+            showToast(`✓ Data "${nama}" (${kode}) berhasil dihapus dari Web & Google Sheet!`, 'success', 5000);
+          } else {
+            showToast(`Dihapus dari web. Catatan Google Sheet: ${res.message}`, 'warning', 5000);
+          }
+        } catch (err: any) {
+          showToast(`Dihapus dari web. Google Sheet: ${err.message}`, 'warning', 5000);
+        }
       }
+    }
+  };
+
+  // Two-way sync: Pull updates from Google Sheet into Web
+  const handleFetchFromGoogleSheet = async () => {
+    setIsSyncingSheet(true);
+    showToast('Menghubungkan ke Google Sheet dan menarik data terbaru...', 'info', 3000);
+    try {
+      const res = await googleSheetService.fetchFromGoogleSheet();
+      if (res.success && res.data && res.data.length > 0) {
+        storageService.saveData(res.data);
+        setData(res.data);
+        showToast(`✓ Berhasil menarik ${res.data.length} data Daerah Irigasi terbaru dari Google Sheet!`, 'success', 5000);
+      } else {
+        showToast(res.message, 'warning', 6000);
+      }
+    } catch (err: any) {
+      showToast(`Gagal menarik data dari Google Sheet: ${err.message}`, 'error', 6000);
+    } finally {
+      setIsSyncingSheet(false);
     }
   };
 
@@ -154,6 +235,8 @@ export default function App() {
             onEditDI={handleEditDI}
             onDeleteDI={handleDeleteDI}
             onOpenAddModal={handleOpenAddModal}
+            onFetchFromGoogleSheet={handleFetchFromGoogleSheet}
+            isSyncingSheet={isSyncingSheet}
           />
         )}
 
@@ -197,6 +280,7 @@ export default function App() {
           handleEditDI(di);
         }}
         onPrintSingle={handlePrintSingle}
+        onDelete={handleDeleteDI}
       />
 
       <IrrigationFormModal
@@ -224,7 +308,11 @@ export default function App() {
         isOpen={isGoogleSheetOpen}
         onClose={() => setIsGoogleSheetOpen(false)}
         data={data}
+        onDataUpdated={(newData) => setData(newData)}
       />
+
+      {/* Realtime Toast Notifications for Two-Way Google Sheet Sync and Actions */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
     </div>
   );

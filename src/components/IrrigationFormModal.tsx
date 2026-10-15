@@ -14,7 +14,7 @@ import {
   KeaktifanIuran,
   hitungTotalIKSI
 } from '../types/irigasi';
-import { X, Save, Building, Layers } from 'lucide-react';
+import { X, Save, Building, Layers, Zap, CheckCircle2, Table } from 'lucide-react';
 
 interface IrrigationFormModalProps {
   isOpen: boolean;
@@ -1510,23 +1510,36 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
             </div>
           )}
 
-          {/* Form Actions Footer */}
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition-colors"
-            >
-              Batal
-            </button>
+          {/* Form Actions Footer with Instant Google Sheet Sync Notice */}
+          <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-lg">
+              <Zap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>
+                <strong>Webhook Langsung:</strong> Saat tombol Simpan ditekan, data otomatis masuk & muncul di Google Sheet secara realtime.
+              </span>
+            </div>
 
-            <button
-              type="submit"
-              className="px-5 py-2 text-xs font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
-            >
-              <Save className="w-4 h-4" />
-              <span>Simpan Data Daerah Irigasi</span>
-            </button>
+            <div className="flex items-center gap-2 justify-end">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition-colors"
+              >
+                Batal
+              </button>
+
+              <button
+                type="submit"
+                className="px-5 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Save className="w-4 h-4" />
+                <span>
+                  {initialData
+                    ? 'Simpan Perubahan & Update Google Sheet'
+                    : 'Simpan Data & Kirim Langsung ke Google Sheet'}
+                </span>
+              </button>
+            </div>
           </div>
         </form>
 

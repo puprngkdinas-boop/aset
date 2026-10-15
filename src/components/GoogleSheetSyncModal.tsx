@@ -20,18 +20,21 @@ interface GoogleSheetSyncModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: DaerahIrigasi[];
+  onDataUpdated?: (newData: DaerahIrigasi[]) => void;
 }
 
 export const GoogleSheetSyncModal: React.FC<GoogleSheetSyncModalProps> = ({
   isOpen,
   onClose,
   data,
+  onDataUpdated,
 }) => {
   const [webhookUrl, setWebhookUrl] = useState('');
   const [isEditingUrl, setIsEditingUrl] = useState(false);
   const [autoSync, setAutoSync] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isPulling, setIsPulling] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncResult | null>(null);
   const [copiedScript, setCopiedScript] = useState(false);
   const [showScriptTab, setShowScriptTab] = useState(false);
@@ -89,6 +92,38 @@ export const GoogleSheetSyncModal: React.FC<GoogleSheetSyncModalProps> = ({
     }
   };
 
+  const handlePullFromSheet = async () => {
+    setIsPulling(true);
+    setSyncStatus(null);
+    try {
+      const result = await googleSheetService.fetchFromGoogleSheet();
+      if (result.success && result.data && result.data.length > 0) {
+        if (onDataUpdated) {
+          onDataUpdated(result.data);
+        }
+        setSyncStatus({
+          success: true,
+          message: `Berhasil menarik ${result.data.length} data Daerah Irigasi terbaru dari Google Sheet!`,
+          timestamp: new Date().toLocaleTimeString('id-ID'),
+        });
+      } else {
+        setSyncStatus({
+          success: false,
+          message: result.message,
+          timestamp: new Date().toLocaleTimeString('id-ID'),
+        });
+      }
+    } catch (err: any) {
+      setSyncStatus({
+        success: false,
+        message: err.message || 'Gagal menarik data dari Google Sheet.',
+        timestamp: new Date().toLocaleTimeString('id-ID'),
+      });
+    } finally {
+      setIsPulling(false);
+    }
+  };
+
   const handleCopyScript = () => {
     const script = googleSheetService.getGoogleAppsScriptTemplate();
     navigator.clipboard.writeText(script);
@@ -108,13 +143,13 @@ export const GoogleSheetSyncModal: React.FC<GoogleSheetSyncModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold flex items-center gap-2">
-                <span>Integrasi Google Sheets & Webhook</span>
+                <span>Integrasi Google Sheets & Webhook Dua Arah</span>
                 <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">
                   Tertanam Langsung
                 </span>
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Sinkronisasi data 12 Daerah Irigasi Nagekeo secara otomatis ke Spreadsheet dinas
+                Sinkronisasi otomatis saat Simpan, Edit, dan Hapus data Daerah Irigasi Nagekeo
               </p>
             </div>
           </div>
@@ -131,6 +166,20 @@ export const GoogleSheetSyncModal: React.FC<GoogleSheetSyncModalProps> = ({
         {/* Content Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-5">
           
+          {/* Realtime Action Guide Badge */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-950 space-y-1.5">
+            <div className="font-bold flex items-center gap-1.5 text-amber-900">
+              <Zap className="w-4 h-4 text-amber-600" />
+              <span>Sinkronisasi Otomatis Dua Arah Telah Aktif Secara Default:</span>
+            </div>
+            <ul className="list-disc pl-5 space-y-1 text-amber-900/90 text-[11px] leading-relaxed">
+              <li><strong>Tambah Data:</strong> Saat menekan tombol <em>Simpan</em>, data langsung masuk dan muncul di baris Google Sheet baru tanpa perlu tombol kirim.</li>
+              <li><strong>Edit Data:</strong> Saat mengedit dan menyimpan, baris dengan Kode DI tersebut otomatis diperbarui di Google Sheet.</li>
+              <li><strong>Hapus Data:</strong> Saat tombol hapus ditekan di web, baris data tersebut otomatis terhapus dari Google Sheet.</li>
+              <li><strong>Tarik Data (Sheet &rarr; Web):</strong> Ambil pembaruan bila ada tim dinas yang mengedit langsung di spreadsheet.</li>
+            </ul>
+          </div>
+
           {/* Status Alert if any */}
           {syncStatus && (
             <div className={`p-3.5 rounded-xl text-xs flex items-start gap-2.5 ${
@@ -150,93 +199,69 @@ export const GoogleSheetSyncModal: React.FC<GoogleSheetSyncModalProps> = ({
             </div>
           )}
 
-          {/* Webhook URL Configuration Card */}
-          <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Link className="w-3.5 h-3.5 text-amber-600" />
-                <span>URL Webhook Google Apps Script (Tertanam)</span>
-              </span>
+          {/* Two-Way Actions Strip */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Kirim Semua ke Sheet */}
+            <div className="border border-slate-200 rounded-xl p-4 bg-white flex flex-col justify-between gap-3">
+              <div>
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Send className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Kirim Semua Data ke Sheet</span>
+                </span>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Sinkronkan seluruh {data.length} DI sekaligus ke Google Sheet dinas.
+                </p>
+              </div>
               <button
                 type="button"
-                onClick={() => setIsEditingUrl(!isEditingUrl)}
-                className="text-[11px] font-semibold text-amber-700 hover:text-amber-800"
+                onClick={handleSyncNow}
+                disabled={isSyncing}
+                className="w-full px-3 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-xs disabled:opacity-50"
               >
-                {isEditingUrl ? 'Batal Ubah' : 'Kustomisasi URL'}
+                {isSyncing ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Mengirim...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Kirim {data.length} Data (Web &rarr; Sheet)</span>
+                  </>
+                )}
               </button>
             </div>
 
-            {isEditingUrl ? (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={webhookUrl}
-                  onChange={(e) => setWebhookUrl(e.target.value)}
-                  placeholder="https://script.google.com/macros/s/.../exec"
-                  className="w-full px-3 py-2 text-xs font-mono bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                />
-                <div className="flex items-center justify-between pt-1">
-                  <button
-                    type="button"
-                    onClick={handleResetDefaultUrl}
-                    className="text-[11px] text-slate-500 hover:text-slate-800"
-                  >
-                    Reset ke URL Default Bawaan
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveUrl}
-                    className="px-3 py-1.5 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors"
-                  >
-                    Simpan URL
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="p-2.5 bg-white border border-slate-200 rounded-lg text-xs font-mono text-slate-700 break-all select-all flex items-center justify-between gap-2">
-                <span className="truncate">{webhookUrl}</span>
-                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-sans font-semibold shrink-0">
-                  Aktif
+            {/* Tarik Pembaruan dari Sheet */}
+            <div className="border border-slate-200 rounded-xl p-4 bg-white flex flex-col justify-between gap-3">
+              <div>
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Tarik Pembaruan dari Sheet</span>
                 </span>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Ambil data terbaru dari Google Sheet jika ada pengeditan langsung di spreadsheet.
+                </p>
               </div>
-            )}
-
-            <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
-              <span>Status Sinkronisasi Terakhir:</span>
-              <strong className="text-slate-700">{lastSync || 'Belum pernah disinkronkan'}</strong>
+              <button
+                type="button"
+                onClick={handlePullFromSheet}
+                disabled={isPulling}
+                className="w-full px-3 py-2 text-xs font-semibold text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-xs disabled:opacity-50"
+              >
+                {isPulling ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Menarik...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Tarik Data (Sheet &rarr; Web)</span>
+                  </>
+                )}
+              </button>
             </div>
-          </div>
-
-          {/* Quick Push CTA Strip */}
-          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-emerald-600" />
-                <span>Kirim {data.length} Data Irigasi ke Google Sheet Sekarang</span>
-              </div>
-              <p className="text-[11px] text-emerald-800/80 mt-0.5">
-                Mengirim seluruh kolom: nama, kode, luas, IKSI, bangunan utama, dan pelengkap.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleSyncNow}
-              disabled={isSyncing}
-              className="px-4 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors flex items-center justify-center gap-1.5 shrink-0 shadow-xs disabled:opacity-50"
-            >
-              {isSyncing ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Mengirim...</span>
-                </>
-              ) : (
-                <>
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Kirim ke Google Sheet</span>
-                </>
-              )}
-            </button>
           </div>
 
           {/* Auto Sync Toggle */}

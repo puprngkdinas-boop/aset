@@ -18,7 +18,8 @@ import {
   ShieldAlert,
   Compass,
   Footprints,
-  Car
+  Car,
+  Trash2
 } from 'lucide-react';
 import { analisaKondisiIrigasiDenganAI, AnalisisHasil } from '../services/geminiService';
 
@@ -28,6 +29,7 @@ interface IrrigationDetailModalProps {
   onClose: () => void;
   onEdit: (di: DaerahIrigasi) => void;
   onPrintSingle: (di: DaerahIrigasi) => void;
+  onDelete?: (id: string, nama: string) => void;
 }
 
 type DetailTab = 
@@ -46,6 +48,7 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
   onClose,
   onEdit,
   onPrintSingle,
+  onDelete,
 }) => {
   const [activeTab, setActiveTab] = useState<DetailTab>('ringkasan');
   const [aiAnalysis, setAiAnalysis] = useState<AnalisisHasil | null>(null);
@@ -115,10 +118,20 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
               type="button"
               onClick={() => onEdit(di)}
               className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-              title="Ubah Data DI"
+              title="Ubah Data DI (Sinkronisasi Web & Google Sheet)"
             >
               <Edit3 className="w-4 h-4" />
             </button>
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(di.id, di.nama)}
+                className="p-2 text-rose-400 hover:text-rose-200 hover:bg-rose-950/60 rounded-lg transition-colors"
+                title="Hapus Data DI (Dua Arah: Web & Google Sheet)"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
             <button
               type="button"
               onClick={onClose}

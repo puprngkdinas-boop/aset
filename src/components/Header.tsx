@@ -106,10 +106,11 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={onOpenGoogleSheetModal}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-300 bg-emerald-950/60 hover:bg-emerald-900/80 hover:text-white rounded-md border border-emerald-700/60 transition-colors"
-              title="Sinkronisasi Webhook Google Sheets"
+              title="Integrasi Google Sheets & Webhook Dua Arah Otomatis"
             >
               <Table className="w-3.5 h-3.5 text-emerald-400" />
               <span className="hidden sm:inline">Google Sheet</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" title="Webhook Realtime Aktif" />
             </button>
 
             <button

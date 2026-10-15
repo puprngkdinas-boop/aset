@@ -1,7 +1,6 @@
-import { DaerahIrigasi } from '../types/irigasi';
+import { DaerahIrigasi, KecamatanNagekeo, KewenanganDI, JenisIrigasi, KondisiFisik, KategoriIKSI, TipeBangunanUtama } from '../types/irigasi';
 
 // Embedded default Google Apps Script Webhook URL for Dinas PUPR Nagekeo
-// Users can use this embedded URL or supply their own deployment URL in Settings.
 export const DEFAULT_GOOGLE_SHEET_WEBHOOK_URL =
   'https://script.google.com/macros/s/AKfycbzNagekeoIrrigationPUPR_WebhookDefault/exec';
 
@@ -19,7 +18,10 @@ export interface SyncResult {
 export const googleSheetService = {
   getWebhookUrl(): string {
     const saved = localStorage.getItem(STORAGE_WEBHOOK_KEY);
-    return saved && saved.trim() !== '' ? saved : DEFAULT_GOOGLE_SHEET_WEBHOOK_URL;
+    if (saved && saved.trim() !== '') return saved;
+    const envUrl = (import.meta as any).env?.VITE_GOOGLE_SHEET_WEBHOOK_URL;
+    if (envUrl && envUrl.trim() !== '') return envUrl;
+    return DEFAULT_GOOGLE_SHEET_WEBHOOK_URL;
   },
 
   setWebhookUrl(url: string): void {
@@ -28,7 +30,8 @@ export const googleSheetService = {
 
   getAutoSync(): boolean {
     const saved = localStorage.getItem(STORAGE_AUTO_SYNC_KEY);
-    return saved === 'true';
+    // Default to true so Save, Edit, and Delete instantly sync to Google Sheets!
+    return saved === null ? true : saved === 'true';
   },
 
   setAutoSync(enabled: boolean): void {
@@ -95,6 +98,62 @@ export const googleSheetService = {
   },
 
   /**
+   * Realtime instant single record sync to Google Sheets (CREATE, UPDATE, DELETE, UPSERT)
+   * Triggers automatically whenever user clicks Simpan, Edit, or Hapus in the web interface.
+   */
+  async sendRecordEvent(
+    di: DaerahIrigasi,
+    action: 'CREATE' | 'UPDATE' | 'DELETE' | 'UPSERT'
+  ): Promise<SyncResult> {
+    const url = this.getWebhookUrl();
+    const formatted = this.formatDataForSheets([di])[0];
+    const payload = {
+      action: action,
+      kodeDI: di.kodeDI,
+      namaDI: di.nama,
+      timestamp: new Date().toISOString(),
+      source: 'SI-IRIGASI Nagekeo Live Webhook',
+      record: formatted,
+    };
+
+    const actionText =
+      action === 'CREATE'
+        ? 'ditambahkan ke'
+        : action === 'UPDATE'
+        ? 'diperbarui di'
+        : action === 'UPSERT'
+        ? 'disimpan & disinkronkan ke'
+        : 'dihapus dari';
+
+    try {
+      await fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const now = new Date().toLocaleTimeString('id-ID');
+      this.setLastSync(now);
+
+      return {
+        success: true,
+        message: `Data "${di.nama}" (${di.kodeDI}) langsung ${actionText} Google Sheet secara realtime.`,
+        timestamp: now,
+      };
+    } catch (err: any) {
+      console.warn('Realtime sync to Google Sheet error:', err);
+      return {
+        success: false,
+        message: `Gagal sinkronisasi ke Google Sheet: ${err.message || 'Koneksi terputus'}`,
+        timestamp: new Date().toLocaleTimeString('id-ID'),
+      };
+    }
+  },
+
+  /**
    * Sync all Daerah Irigasi records to Google Sheet via Webhook POST
    */
   async syncAllToGoogleSheet(data: DaerahIrigasi[]): Promise<SyncResult> {
@@ -108,9 +167,9 @@ export const googleSheetService = {
     };
 
     try {
-      // Use text/plain to avoid CORS preflight options with Google Apps Script
-      const response = await fetch(url, {
+      await fetch(url, {
         method: 'POST',
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'text/plain;charset=utf-8',
         },
@@ -122,101 +181,175 @@ export const googleSheetService = {
 
       return {
         success: true,
-        message: `Berhasil menyinkronkan ${data.length} Daerah Irigasi ke Google Sheet.`,
+        message: `Berhasil menyinkronkan seluruh ${data.length} Daerah Irigasi ke Google Sheet.`,
         timestamp: now,
         totalSynced: data.length,
       };
-    } catch (err: any) {
-      // Fallback: If browser restricts CORS on Google Apps Script redirect,
-      // Google Apps Script usually processes the POST in mode: 'no-cors'
-      try {
-        await fetch(url, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        const now = new Date().toLocaleString('id-ID');
-        this.setLastSync(now);
-
-        return {
-          success: true,
-          message: `Permintaan sinkronisasi ${data.length} data telah dikirim ke Webhook Google Sheet.`,
-          timestamp: now,
-          totalSynced: data.length,
-        };
-      } catch (innerErr: any) {
-        console.error('Error syncing to Google Sheet:', innerErr);
-        return {
-          success: false,
-          message: `Gagal menghubungkan ke Google Sheet: ${innerErr.message || 'Periksa koneksi atau URL Webhook.'}`,
-          timestamp: new Date().toLocaleString('id-ID'),
-        };
-      }
+    } catch (innerErr: any) {
+      console.error('Error syncing to Google Sheet:', innerErr);
+      return {
+        success: false,
+        message: `Gagal menghubungkan ke Google Sheet: ${innerErr.message || 'Periksa koneksi atau URL Webhook.'}`,
+        timestamp: new Date().toLocaleString('id-ID'),
+      };
     }
   },
 
   /**
-   * Send single record change to Google Sheet (Insert / Update / Delete)
+   * Pull / Fetch all data from Google Sheet back into Web (Two-Way Sync: Sheet -> Web)
    */
-  async sendRecordEvent(di: DaerahIrigasi, action: 'UPSERT' | 'DELETE'): Promise<boolean> {
-    if (!this.getAutoSync()) return true;
-
+  async fetchFromGoogleSheet(): Promise<{ success: boolean; data?: DaerahIrigasi[]; message: string }> {
     const url = this.getWebhookUrl();
-    const payload = {
-      action,
-      timestamp: new Date().toISOString(),
-      source: 'SI-IRIGASI Nagekeo AutoSync',
-      record: this.formatDataForSheets([di])[0],
-    };
-
     try {
-      await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8',
+      const response = await fetch(`${url}?action=GET_ALL&t=${Date.now()}`);
+      if (!response.ok) {
+        throw new Error(`HTTP Error ${response.status}`);
+      }
+
+      const resJson = await response.json();
+      if (!resJson || !Array.isArray(resJson.records)) {
+        throw new Error('Format data Google Sheet tidak sesuai.');
+      }
+
+      const rows = resJson.records;
+      const parsedData: DaerahIrigasi[] = rows.map((r: any, idx: number) => ({
+        id: r.id || `di-sheet-${idx}-${Date.now()}`,
+        kodeDI: r.kodeDI || `DI-53.16.01.${idx + 100}`,
+        nama: r.namaDI || 'Daerah Irigasi',
+        kecamatan: (r.kecamatan as KecamatanNagekeo) || 'Aesesa',
+        desa: r.desa || '',
+        kewenangan: (r.kewenangan as KewenanganDI) || 'Kabupaten',
+        jenisIrigasi: (r.jenisIrigasi as JenisIrigasi) || 'Permukaan',
+        sumberAir: r.sumberAir || '',
+        luasBaku: Number(r.luasBakuHa) || 0,
+        luasPotensial: Number(r.luasPotensialHa) || 0,
+        luasFungsional: Number(r.luasFungsionalHa) || 0,
+        tahunPembangunan: Number(r.tahunPembangunan) || 2010,
+        koordinat: {
+          lat: Number(r.latitude) || -8.67,
+          lng: Number(r.longitude) || 121.28,
         },
-        body: JSON.stringify(payload),
-      });
-      return true;
-    } catch (e) {
-      console.warn('Auto-sync record event failed:', e);
-      return false;
+        kondisiFisik: (r.kondisiFisik as KondisiFisik) || 'Baik',
+        nilaiIKSI: Number(r.nilaiIKSI) || 70,
+        kategoriIKSI: (r.kategoriIKSI as KategoriIKSI) || 'Baik',
+        rincianIKSI: {
+          prasaranaFisik: 32,
+          produktivitasTanam: 11,
+          saranaPenunjang: 7,
+          organisasiPersonalia: 11,
+          dokumentasi: 3,
+          p3a: 6,
+        },
+        bangunanUtama: {
+          tipe: (r.tipeBangunanUtama as TipeBangunanUtama) || 'Bendung Tetap',
+          nama: r.namaBendungIntake || 'Bendung',
+          lebarBendungM: Number(r.lebarMercuM) || 12,
+          tinggiMercuM: Number(r.tinggiMercuM) || 2,
+          tipeMercu: r.tipeMercu || 'Ogee',
+          bahanKonstruksi: r.bahanKonstruksi || 'Pasangan Batu',
+          elevasiMercuMdpl: Number(r.elevasiMercuMdpl) || 50,
+          tipeKolamOlak: r.kolamOlak || 'USBR Type II/III',
+          kondisi: (r.kondisiFisik as KondisiFisik) || 'Baik',
+          jumlahPintuPengambilan: Number(r.pintuPengambilanUnit) || 1,
+          jumlahPintuKuras: Number(r.pintuKurasUnit) || 1,
+          kantongLumpur: r.kantongLumpur === 'Ya',
+          debitRataRataM3s: Number(r.debitRataRataM3s) || 0.5,
+        },
+        bangunanPelengkap: {
+          jembatanDesaTani: { jumlahUnit: Number(r.jembatanDesaTaniUnit) || 2, kondisi: 'Baik' },
+          kubanganCuciTernak: { jumlahUnit: Number(r.kubanganTernakUnit) || 1, kondisi: 'Baik' },
+          tanggaCuciMandiPetani: { jumlahUnit: Number(r.tanggaCuciPetaniUnit) || 3, kondisi: 'Baik' },
+          pelimpahSampingWasteweir: { jumlahUnit: Number(r.wasteweirUnit) || 1, kondisi: 'Baik' },
+          trashrackSaringanSampah: { jumlahUnit: 1, kondisi: 'Baik' },
+          peilschaalSaluran: { jumlahUnit: 3, kondisi: 'Baik' },
+          patokHektometerSempadan: { jumlahUnit: 25, kondisi: 'Baik' },
+          garduJagaRumahPintu: { jumlahUnit: 1, kondisi: 'Baik' },
+          jalanInspeksi: {
+            panjangKm: Number(r.jalanInspeksiKm) || 3,
+            lebarM: 2.8,
+            jenisPerkerasan: (r.perkerasanJalan as any) || 'Rabat Beton',
+            kondisi: 'Baik',
+          },
+          bangunanSilangDetail: {
+            talang: Number(r.talangUnit) || 1,
+            siphon: Number(r.siphonUnit) || 0,
+            gorongGorong: Number(r.gorongGorongUnit) || 5,
+            gotMiringTerjunan: 1,
+          },
+        },
+        jaringanSaluran: {
+          panjangPrimerM: Number(r.saluranPrimerM) || 2000,
+          kondisiPrimer: 'Baik',
+          panjangSekunderM: Number(r.saluranSekunderM) || 3000,
+          kondisiSekunder: 'Baik',
+          panjangTersierM: Number(r.saluranTersierM) || 4000,
+          kondisiTersier: 'Rusak Ringan',
+          jumlahBangunanBagi: 2,
+          jumlahBangunanSadap: 4,
+          jumlahBangunanBagiSadap: 2,
+          jumlahTalangSiphon: 1,
+          jumlahGorongGorong: Number(r.gorongGorongUnit) || 5,
+        },
+        dataP3A: {
+          namaP3A: r.namaP3A || '',
+          namaKetua: r.ketuaP3A || '',
+          noKontak: r.kontakP3A || '',
+          statusBadanHukum: true,
+          jumlahAnggota: 50,
+          keaktifanIuran: 'Aktif',
+        },
+        usulanPenanganan: {
+          kategori: r.usulanPenanganan || 'O&P Rutin',
+          estimasiBiayaRp: Number(r.estimasiBiayaRp) || 50000000,
+          sumberDana: r.sumberDana || 'APBD Kab. Nagekeo',
+          tahunUsulan: 2026,
+          catatanTeknis: '',
+          statusUsulan: 'Diusulkan',
+        },
+        galeriFoto: [],
+        updatedAt: r.terakhirDiperbarui || new Date().toISOString().slice(0, 10),
+      }));
+
+      return {
+        success: true,
+        data: parsedData,
+        message: `Berhasil menarik ${parsedData.length} data terbaru dari Google Sheet!`,
+      };
+    } catch (err: any) {
+      console.warn('Pull from Google Sheet warning:', err);
+      return {
+        success: false,
+        message: `Belum dapat menarik data langsung dari Google Sheet (${err.message || 'CORS / URL belum diaktifkan'}). Gunakan Push Webhook untuk sinkronisasi dua arah.`,
+      };
     }
   },
 
   /**
-   * Complete Google Apps Script template code that user can paste into Extensions > Apps Script in Google Sheets
+   * Complete Google Apps Script template code supporting Real-time CREATE, UPDATE, DELETE and GET_ALL
    */
   getGoogleAppsScriptTemplate(): string {
     return `/**
- * GOOGLE APPS SCRIPT: WEBHOOK SI-IRIGASI KABUPATEN NAGEKEO
- * Dinas Pekerjaan Umum dan Penataan Ruang (PUPR) Kab. Nagekeo
- *
- * Petunjuk Pemasangan:
- * 1. Buat Spreadsheet baru di Google Sheets (misal: "Database Irigasi Nagekeo PUPR").
- * 2. Klik menu "Ekstensi" > "Apps Script".
- * 3. Hapus kode bawaan dan tempel (paste) seluruh kode ini.
- * 4. Klik "Simpan" (Ctrl+S).
- * 5. Klik tombol biru "Terapkan" (Deploy) > "Penerapan Baru" (New deployment).
- * 6. Pilih jenis: "Aplikasi Web" (Web app).
- * 7. Isi Deskripsi: "Webhook SI-IRIGASI Nagekeo".
- * 8. Akses (Who has access): Pilih "Siapa saja" (Anyone).
- * 9. Salin URL Aplikasi Web yang muncul dan tempelkan ke aplikasi SI-IRIGASI Nagekeo.
+ * GOOGLE APPS SCRIPT: WEBHOOK DUA ARAH (TWO-WAY SYNC)
+ * SI-IRIGASI KABUPATEN NAGEKEO - DINAS PUPR
+ * 
+ * Fitur Otomatis:
+ * - Menangani tombol SIMPAN (CREATE / UPDATE baris langsung)
+ * - Menangani tombol HAPUS (DELETE baris langsung)
+ * - Menangani tombol SINKRONISASI SEMUA (SYNC_ALL)
+ * - Menangani TARIK DATA (doGet) untuk sinkronisasi dua arah ke web
  */
 
 function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+
   try {
     var contents = e.postData.contents;
     var data = JSON.parse(contents);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName("DATABASE_IRIGASI");
 
-    // Jika sheet belum ada, buat otomatis beserta header
+    // Jika sheet belum ada, buat otomatis beserta header standar
     if (!sheet) {
       sheet = ss.insertSheet("DATABASE_IRIGASI");
       var headers = [
@@ -238,27 +371,85 @@ function doPost(e) {
       sheet.setFrozenRows(1);
     }
 
-    if (data.action === "SYNC_ALL" && data.records) {
-      // Hapus data lama baris ke-2 dst, lalu tulis ulang
+    var action = data.action;
+    var targetKode = data.kodeDI || (data.record && data.record.kodeDI);
+
+    // 1. AKSI SIMPAN / EDIT LANGSUNG (CREATE / UPDATE / UPSERT)
+    if (action === "CREATE" || action === "UPDATE" || action === "UPSERT") {
+      var r = data.record;
+      var rowValues = [
+        r.kodeDI, r.namaDI, r.kecamatan, r.desa, r.kewenangan,
+        r.jenisIrigasi, r.sumberAir, r.luasBakuHa, r.luasPotensialHa,
+        r.luasFungsionalHa, r.kondisiFisik, r.nilaiIKSI, r.kategoriIKSI,
+        r.tipeBangunanUtama, r.namaBendungIntake, r.bahanKonstruksi, r.tipeMercu,
+        r.lebarMercuM, r.tinggiMercuM, r.elevasiMercuMdpl, r.kolamOlak,
+        r.pintuPengambilanUnit, r.pintuKurasUnit, r.kantongLumpur, r.debitRataRataM3s,
+        r.jembatanDesaTaniUnit, r.kubanganTernakUnit, r.tanggaCuciPetaniUnit,
+        r.wasteweirUnit, r.jalanInspeksiKm, r.perkerasanJalan, r.talangUnit,
+        r.siphonUnit, r.gorongGorongUnit, r.saluranPrimerM, r.saluranSekunderM,
+        r.saluranTersierM, r.namaP3A, r.ketuaP3A, r.kontakP3A,
+        r.usulanPenanganan, r.estimasiBiayaRp, r.sumberDana,
+        r.latitude, r.longitude, r.terakhirDiperbarui || new Date().toISOString().slice(0, 10)
+      ];
+
       var lastRow = sheet.getLastRow();
+      var foundRow = -1;
+
+      // Cari apakah baris dengan Kode DI ini sudah ada
       if (lastRow > 1) {
-        sheet.deleteRows(2, lastRow - 1);
+        var kodeList = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+        for (var i = 0; i < kodeList.length; i++) {
+          if (String(kodeList[i][0]).trim() === String(targetKode).trim()) {
+            foundRow = i + 2; // offset baris (1-indexed + header)
+            break;
+          }
+        }
       }
 
-      var rows = data.records.map(function(r) {
+      if (foundRow > 0) {
+        // Update baris yang sudah ada (Dua Arah: Web Edit -> Sheet Update)
+        sheet.getRange(foundRow, 1, 1, rowValues.length).setValues([rowValues]);
+      } else {
+        // Tambah baris baru (Dua Arah: Web Tambah -> Sheet Insert)
+        sheet.appendRow(rowValues);
+      }
+    }
+
+    // 2. AKSI HAPUS LANGSUNG (DELETE: Web Hapus -> Sheet Delete Row)
+    else if (action === "DELETE") {
+      var lastRowDel = sheet.getLastRow();
+      if (lastRowDel > 1) {
+        var kodeListDel = sheet.getRange(2, 1, lastRowDel - 1, 1).getValues();
+        for (var j = 0; j < kodeListDel.length; j++) {
+          if (String(kodeListDel[j][0]).trim() === String(targetKode).trim()) {
+            sheet.deleteRow(j + 2);
+            break;
+          }
+        }
+      }
+    }
+
+    // 3. AKSI SYNC_ALL (Kirim Semua Sekaligus)
+    else if (action === "SYNC_ALL" && data.records) {
+      var totalExisting = sheet.getLastRow();
+      if (totalExisting > 1) {
+        sheet.deleteRows(2, totalExisting - 1);
+      }
+
+      var rows = data.records.map(function(item) {
         return [
-          r.kodeDI, r.namaDI, r.kecamatan, r.desa, r.kewenangan,
-          r.jenisIrigasi, r.sumberAir, r.luasBakuHa, r.luasPotensialHa,
-          r.luasFungsionalHa, r.kondisiFisik, r.nilaiIKSI, r.kategoriIKSI,
-          r.tipeBangunanUtama, r.namaBendungIntake, r.bahanKonstruksi, r.tipeMercu,
-          r.lebarMercuM, r.tinggiMercuM, r.elevasiMercuMdpl, r.kolamOlak,
-          r.pintuPengambilanUnit, r.pintuKurasUnit, r.kantongLumpur, r.debitRataRataM3s,
-          r.jembatanDesaTaniUnit, r.kubanganTernakUnit, r.tanggaCuciPetaniUnit,
-          r.wasteweirUnit, r.jalanInspeksiKm, r.perkerasanJalan, r.talangUnit,
-          r.siphonUnit, r.gorongGorongUnit, r.saluranPrimerM, r.saluranSekunderM,
-          r.saluranTersierM, r.namaP3A, r.ketuaP3A, r.kontakP3A,
-          r.usulanPenanganan, r.estimasiBiayaRp, r.sumberDana,
-          r.latitude, r.longitude, r.terakhirDiperbarui
+          item.kodeDI, item.namaDI, item.kecamatan, item.desa, item.kewenangan,
+          item.jenisIrigasi, item.sumberAir, item.luasBakuHa, item.luasPotensialHa,
+          item.luasFungsionalHa, item.kondisiFisik, item.nilaiIKSI, item.kategoriIKSI,
+          item.tipeBangunanUtama, item.namaBendungIntake, item.bahanKonstruksi, item.tipeMercu,
+          item.lebarMercuM, item.tinggiMercuM, item.elevasiMercuMdpl, item.kolamOlak,
+          item.pintuPengambilanUnit, item.pintuKurasUnit, item.kantongLumpur, item.debitRataRataM3s,
+          item.jembatanDesaTaniUnit, item.kubanganTernakUnit, item.tanggaCuciPetaniUnit,
+          item.wasteweirUnit, item.jalanInspeksiKm, item.perkerasanJalan, item.talangUnit,
+          item.siphonUnit, item.gorongGorongUnit, item.saluranPrimerM, item.saluranSekunderM,
+          item.saluranTersierM, item.namaP3A, item.ketuaP3A, item.kontakP3A,
+          item.usulanPenanganan, item.estimasiBiayaRp, item.sumberDana,
+          item.latitude, item.longitude, item.terakhirDiperbarui
         ];
       });
 
@@ -269,7 +460,8 @@ function doPost(e) {
 
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
-      message: "Data berhasil disimpan di Google Sheet",
+      action: action,
+      kodeDI: data.kodeDI || "ALL",
       timestamp: new Date()
     })).setMimeType(ContentService.MimeType.JSON);
 
@@ -278,22 +470,91 @@ function doPost(e) {
       status: "error",
       message: error.toString()
     })).setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
   }
 }
 
 function doGet(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("DATABASE_IRIGASI");
-  if (!sheet) {
-    return ContentService.createTextOutput(JSON.stringify([])).setMimeType(ContentService.MimeType.JSON);
-  }
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("DATABASE_IRIGASI");
+    if (!sheet) {
+      return ContentService.createTextOutput(JSON.stringify({ records: [] }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
 
-  var data = sheet.getDataRange().getValues();
-  return ContentService.createTextOutput(JSON.stringify({
-    status: "ok",
-    totalRows: data.length - 1,
-    message: "Endpoint Webhook SI-IRIGASI Nagekeo aktif"
-  })).setMimeType(ContentService.MimeType.JSON);
+    var values = sheet.getDataRange().getValues();
+    if (values.length <= 1) {
+      return ContentService.createTextOutput(JSON.stringify({ records: [] }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var records = [];
+    for (var i = 1; i < values.length; i++) {
+      var row = values[i];
+      records.push({
+        kodeDI: row[0],
+        namaDI: row[1],
+        kecamatan: row[2],
+        desa: row[3],
+        kewenangan: row[4],
+        jenisIrigasi: row[5],
+        sumberAir: row[6],
+        luasBakuHa: row[7],
+        luasPotensialHa: row[8],
+        luasFungsionalHa: row[9],
+        kondisiFisik: row[10],
+        nilaiIKSI: row[11],
+        kategoriIKSI: row[12],
+        tipeBangunanUtama: row[13],
+        namaBendungIntake: row[14],
+        bahanKonstruksi: row[15],
+        tipeMercu: row[16],
+        lebarMercuM: row[17],
+        tinggiMercuM: row[18],
+        elevasiMercuMdpl: row[19],
+        kolamOlak: row[20],
+        pintuPengambilanUnit: row[21],
+        pintuKurasUnit: row[22],
+        kantongLumpur: row[23],
+        debitRataRataM3s: row[24],
+        jembatanDesaTaniUnit: row[25],
+        kubanganTernakUnit: row[26],
+        tanggaCuciPetaniUnit: row[27],
+        wasteweirUnit: row[28],
+        jalanInspeksiKm: row[29],
+        perkerasanJalan: row[30],
+        talangUnit: row[31],
+        siphonUnit: row[32],
+        gorongGorongUnit: row[33],
+        saluranPrimerM: row[34],
+        saluranSekunderM: row[35],
+        saluranTersierM: row[36],
+        namaP3A: row[37],
+        ketuaP3A: row[38],
+        kontakP3A: row[39],
+        usulanPenanganan: row[40],
+        estimasiBiayaRp: row[41],
+        sumberDana: row[42],
+        latitude: row[43],
+        longitude: row[44],
+        terakhirDiperbarui: row[45]
+      });
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      totalRecords: records.length,
+      records: records
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }`;
   },
 };

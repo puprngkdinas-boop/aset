@@ -17,7 +17,9 @@ import {
   LayoutList, 
   LayoutGrid, 
   MapPin, 
-  Droplet
+  Droplet,
+  RefreshCw,
+  Table
 } from 'lucide-react';
 
 interface IrrigationListProps {
@@ -26,6 +28,8 @@ interface IrrigationListProps {
   onEditDI: (di: DaerahIrigasi) => void;
   onDeleteDI: (id: string, nama: string) => void;
   onOpenAddModal: () => void;
+  onFetchFromGoogleSheet?: () => void;
+  isSyncingSheet?: boolean;
 }
 
 type SortField = 'nama' | 'kecamatan' | 'luasFungsional' | 'nilaiIKSI' | 'kondisiFisik';
@@ -37,6 +41,8 @@ export const IrrigationList: React.FC<IrrigationListProps> = ({
   onEditDI,
   onDeleteDI,
   onOpenAddModal,
+  onFetchFromGoogleSheet,
+  isSyncingSheet,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKecamatan, setSelectedKecamatan] = useState<string>('all');
@@ -191,6 +197,19 @@ export const IrrigationList: React.FC<IrrigationListProps> = ({
                 <LayoutGrid className="w-3.5 h-3.5" />
               </button>
             </div>
+
+            {onFetchFromGoogleSheet && (
+              <button
+                type="button"
+                onClick={onFetchFromGoogleSheet}
+                disabled={isSyncingSheet}
+                className="px-3 py-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-lg transition-colors whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                title="Tarik data terbaru dari Google Sheet (Dua Arah: Sheet -> Web)"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isSyncingSheet ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Tarik dari Sheet</span>
+              </button>
+            )}
 
             <button
               type="button"
