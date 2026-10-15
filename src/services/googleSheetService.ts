@@ -1,9 +1,13 @@
 import { DaerahIrigasi, KecamatanNagekeo, KewenanganDI, JenisIrigasi, KondisiFisik, KategoriIKSI, TipeBangunanUtama } from '../types/irigasi';
 
-// Embedded default Google Apps Script Webhook URL for Dinas PUPR Nagekeo
+// Embedded default Google Spreadsheet View URL and Webhook URL for Dinas PUPR Nagekeo
+export const DEFAULT_GOOGLE_SHEET_URL =
+  'https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit?usp=sharing';
+
 export const DEFAULT_GOOGLE_SHEET_WEBHOOK_URL =
   'https://script.google.com/macros/s/AKfycbzNagekeoIrrigationPUPR_WebhookDefault/exec';
 
+const STORAGE_SHEET_URL_KEY = 'si_irigasi_google_sheet_view_url';
 const STORAGE_WEBHOOK_KEY = 'si_irigasi_google_sheet_webhook_url';
 const STORAGE_AUTO_SYNC_KEY = 'si_irigasi_google_sheet_auto_sync';
 const STORAGE_LAST_SYNC_KEY = 'si_irigasi_google_sheet_last_sync';
@@ -16,6 +20,18 @@ export interface SyncResult {
 }
 
 export const googleSheetService = {
+  getSheetUrl(): string {
+    const saved = localStorage.getItem(STORAGE_SHEET_URL_KEY);
+    if (saved && saved.trim() !== '') return saved;
+    const envUrl = (import.meta as any).env?.VITE_GOOGLE_SHEET_URL;
+    if (envUrl && envUrl.trim() !== '') return envUrl;
+    return DEFAULT_GOOGLE_SHEET_URL;
+  },
+
+  setSheetUrl(url: string): void {
+    localStorage.setItem(STORAGE_SHEET_URL_KEY, url.trim());
+  },
+
   getWebhookUrl(): string {
     const saved = localStorage.getItem(STORAGE_WEBHOOK_KEY);
     if (saved && saved.trim() !== '') return saved;
