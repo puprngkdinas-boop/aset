@@ -23,6 +23,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { googleSheetService } from '../services/googleSheetService';
+import { getDaftarDesa } from '../data/wilayahNagekeo';
 
 interface IrrigationListProps {
   data: DaerahIrigasi[];
@@ -48,6 +49,7 @@ export const IrrigationList: React.FC<IrrigationListProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKecamatan, setSelectedKecamatan] = useState<string>('all');
+  const [selectedDesa, setSelectedDesa] = useState<string>('all');
   const [selectedKewenangan, setSelectedKewenangan] = useState<string>('all');
   const [selectedKondisi, setSelectedKondisi] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('nilaiIKSI');
@@ -69,13 +71,18 @@ export const IrrigationList: React.FC<IrrigationListProps> = ({
         const matchesKecamatan =
           selectedKecamatan === 'all' || item.kecamatan === selectedKecamatan;
 
+        const matchesDesa =
+          selectedDesa === 'all' ||
+          item.desa.toLowerCase().includes(selectedDesa.toLowerCase()) ||
+          selectedDesa.toLowerCase().includes(item.desa.toLowerCase());
+
         const matchesKewenangan =
           selectedKewenangan === 'all' || item.kewenangan === selectedKewenangan;
 
         const matchesKondisi =
           selectedKondisi === 'all' || item.kondisiFisik === selectedKondisi;
 
-        return matchesSearch && matchesKecamatan && matchesKewenangan && matchesKondisi;
+        return matchesSearch && matchesKecamatan && matchesDesa && matchesKewenangan && matchesKondisi;
       })
       .sort((a, b) => {
         let valA: any = a[sortField];
@@ -89,7 +96,7 @@ export const IrrigationList: React.FC<IrrigationListProps> = ({
 
         return sortOrder === 'asc' ? valA - valB : valB - valA;
       });
-  }, [data, searchTerm, selectedKecamatan, selectedKewenangan, selectedKondisi, sortField, sortOrder]);
+  }, [data, searchTerm, selectedKecamatan, selectedDesa, selectedKewenangan, selectedKondisi, sortField, sortOrder]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -103,6 +110,7 @@ export const IrrigationList: React.FC<IrrigationListProps> = ({
   const resetFilters = () => {
     setSearchTerm('');
     setSelectedKecamatan('all');
+    setSelectedDesa('all');
     setSelectedKewenangan('all');
     setSelectedKondisi('all');
   };
@@ -140,8 +148,11 @@ export const IrrigationList: React.FC<IrrigationListProps> = ({
             {/* Kecamatan Filter */}
             <select
               value={selectedKecamatan}
-              onChange={(e) => setSelectedKecamatan(e.target.value)}
-              className="px-2.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              onChange={(e) => {
+                setSelectedKecamatan(e.target.value);
+                setSelectedDesa('all');
+              }}
+              className="px-2.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium"
             >
               <option value="all">Semua Kecamatan (7)</option>
               {KECAMATAN_NAGEKEO_LIST.map((kec) => (
@@ -150,6 +161,22 @@ export const IrrigationList: React.FC<IrrigationListProps> = ({
                 </option>
               ))}
             </select>
+
+            {/* Desa / Kelurahan Filter (Disesuaikan dengan Kecamatan yang dipilih) */}
+            {selectedKecamatan !== 'all' && (
+              <select
+                value={selectedDesa}
+                onChange={(e) => setSelectedDesa(e.target.value)}
+                className="px-2.5 py-2 text-xs bg-amber-50 border border-amber-300 rounded-lg text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+              >
+                <option value="all">Semua Desa di Kec. {selectedKecamatan} ({getDaftarDesa(selectedKecamatan).length})</option>
+                {getDaftarDesa(selectedKecamatan).map((desa) => (
+                  <option key={desa} value={desa}>
+                    {desa}
+                  </option>
+                ))}
+              </select>
+            )}
 
             {/* Kewenangan Filter */}
             <select
@@ -238,7 +265,7 @@ export const IrrigationList: React.FC<IrrigationListProps> = ({
         </div>
 
         {/* Filter Summary & Reset Bar */}
-        {(selectedKecamatan !== 'all' || selectedKewenangan !== 'all' || selectedKondisi !== 'all' || searchTerm !== '') && (
+        {(selectedKecamatan !== 'all' || selectedDesa !== 'all' || selectedKewenangan !== 'all' || selectedKondisi !== 'all' || searchTerm !== '') && (
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <div>
               Ditemukan <strong className="text-slate-800 font-mono tabular-nums">{filteredData.length}</strong> dari{' '}

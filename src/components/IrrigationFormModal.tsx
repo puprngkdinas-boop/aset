@@ -14,7 +14,8 @@ import {
   KeaktifanIuran,
   hitungTotalIKSI
 } from '../types/irigasi';
-import { X, Save, Building, Layers, Zap, CheckCircle2, Table } from 'lucide-react';
+import { getDaftarDesa } from '../data/wilayahNagekeo';
+import { X, Save, Building, Layers, Zap, CheckCircle2, Table, MapPin } from 'lucide-react';
 
 interface IrrigationFormModalProps {
   isOpen: boolean;
@@ -130,10 +131,12 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
   });
 
   const [formSection, setFormSection] = useState<'umum' | 'bangunan-utama' | 'bangunan-pelengkap' | 'saluran' | 'iksi' | 'p3a' | 'usulan'>('umum');
+  const [isCustomDesa, setIsCustomDesa] = useState(false);
 
   useEffect(() => {
     if (initialData) {
       setFormData(JSON.parse(JSON.stringify(initialData)));
+      setIsCustomDesa(false);
     } else {
       setFormData({
         id: `di-${Date.now()}`,
@@ -238,6 +241,16 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
   }, [initialData, isOpen]);
 
   if (!isOpen) return null;
+
+  const handleKecamatanChange = (newKec: KecamatanNagekeo) => {
+    const listDesa = getDaftarDesa(newKec);
+    setFormData((prev) => ({
+      ...prev,
+      kecamatan: newKec,
+      desa: listDesa.includes(prev.desa || '') ? prev.desa : '',
+    }));
+    setIsCustomDesa(false);
+  };
 
   const handleIksiSubChange = (field: keyof DaerahIrigasi['rincianIKSI'], val: number) => {
     const updatedRincian = {
@@ -372,6 +385,7 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
   };
 
   const bp = formData.bangunanPelengkap;
+  const daftarDesa = getDaftarDesa(formData.kecamatan || 'Aesesa');
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 no-print">
@@ -521,28 +535,71 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                   </label>
                   <select
                     value={formData.kecamatan || 'Aesesa'}
-                    onChange={(e) => setFormData({ ...formData, kecamatan: e.target.value as KecamatanNagekeo })}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    onChange={(e) => handleKecamatanChange(e.target.value as KecamatanNagekeo)}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium"
                   >
                     {KECAMATAN_NAGEKEO_LIST.map((kec) => (
                       <option key={kec} value={kec}>
-                        {kec}
+                        Kec. {kec}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Desa / Kelurahan
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.desa || ''}
-                    onChange={(e) => setFormData({ ...formData, desa: e.target.value })}
-                    placeholder="Nama desa terlayani..."
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Desa / Kelurahan <span className="text-rose-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsCustomDesa(!isCustomDesa)}
+                      className="text-[10px] text-amber-700 hover:text-amber-800 font-semibold hover:underline"
+                    >
+                      {isCustomDesa ? '← Pilihan Dropdown' : '+ Input Manual'}
+                    </button>
+                  </div>
+
+                  {!isCustomDesa ? (
+                    <select
+                      value={formData.desa || ''}
+                      onChange={(e) => {
+                        if (e.target.value === '__CUSTOM__') {
+                          setIsCustomDesa(true);
+                        } else {
+                          setFormData({ ...formData, desa: e.target.value });
+                        }
+                      }}
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium"
+                    >
+                      <option value="">-- Pilih Desa / Kelurahan di Kec. {formData.kecamatan} --</option>
+                      {daftarDesa.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                      {formData.desa && !daftarDesa.includes(formData.desa) && (
+                        <option value={formData.desa}>
+                          {formData.desa} (Tersimpan)
+                        </option>
+                      )}
+                      <option value="__CUSTOM__">✍️ Ketik Nama Desa Lainnya (Manual)...</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={formData.desa || ''}
+                      onChange={(e) => setFormData({ ...formData, desa: e.target.value })}
+                      placeholder={`Ketik nama desa di Kec. ${formData.kecamatan}...`}
+                      className="w-full px-3 py-2 text-xs bg-white border border-amber-400 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      autoFocus
+                    />
+                  )}
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    {!isCustomDesa 
+                      ? `${daftarDesa.length} desa/kelurahan terdaftar di Kec. ${formData.kecamatan}`
+                      : 'Ketik nama desa bebas atau multi-desa terlayani.'}
+                  </p>
                 </div>
 
                 <div>
