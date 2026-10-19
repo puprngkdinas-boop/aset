@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DaerahIrigasi } from '../types/irigasi';
+import { DaerahIrigasi, KondisiFisik } from '../types/irigasi';
 import { 
   X, 
   MapPin, 
@@ -76,9 +76,17 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
         return 'text-blue-700 bg-blue-50 border-blue-200';
       case 'Rusak Sedang':
         return 'text-amber-700 bg-amber-50 border-amber-200';
+      case 'Tidak Ada':
+        return 'text-slate-600 bg-slate-100 border-slate-300 font-medium';
       default:
         return 'text-rose-700 bg-rose-50 border-rose-200';
     }
+  };
+
+  const getKondisiForDisplay = (unitOrPanjang: number, kondisi?: string): KondisiFisik => {
+    if (unitOrPanjang <= 0) return 'Tidak Ada';
+    if (!kondisi || kondisi === 'Tidak Ada') return 'Baik';
+    return kondisi as KondisiFisik;
   };
 
   const bp = di.bangunanPelengkap;
@@ -501,7 +509,14 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                         <span className="font-mono font-bold text-slate-900 block tabular-nums">
                           {bp?.jembatanDesaTani?.jumlahUnit || 0} Unit
                         </span>
-                        <span className="text-[10px] text-slate-500">{bp?.jembatanDesaTani?.kondisi || 'Baik'}</span>
+                        {(() => {
+                          const k = getKondisiForDisplay(bp?.jembatanDesaTani?.jumlahUnit || 0, bp?.jembatanDesaTani?.kondisi);
+                          return (
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getKondisiColor(k)}`}>
+                              {k}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -514,7 +529,14 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                         <span className="font-mono font-bold text-slate-900 block tabular-nums">
                           {bp?.kubanganCuciTernak?.jumlahUnit || 0} Unit
                         </span>
-                        <span className="text-[10px] text-slate-500">{bp?.kubanganCuciTernak?.kondisi || 'Baik'}</span>
+                        {(() => {
+                          const k = getKondisiForDisplay(bp?.kubanganCuciTernak?.jumlahUnit || 0, bp?.kubanganCuciTernak?.kondisi);
+                          return (
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getKondisiColor(k)}`}>
+                              {k}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -527,7 +549,14 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                         <span className="font-mono font-bold text-slate-900 block tabular-nums">
                           {bp?.tanggaCuciMandiPetani?.jumlahUnit || 0} Unit
                         </span>
-                        <span className="text-[10px] text-slate-500">{bp?.tanggaCuciMandiPetani?.kondisi || 'Baik'}</span>
+                        {(() => {
+                          const k = getKondisiForDisplay(bp?.tanggaCuciMandiPetani?.jumlahUnit || 0, bp?.tanggaCuciMandiPetani?.kondisi);
+                          return (
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getKondisiColor(k)}`}>
+                              {k}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -540,7 +569,14 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                         <span className="font-mono font-bold text-slate-900 block tabular-nums">
                           {bp?.pelimpahSampingWasteweir?.jumlahUnit || 0} Unit
                         </span>
-                        <span className="text-[10px] text-slate-500">{bp?.pelimpahSampingWasteweir?.kondisi || 'Baik'}</span>
+                        {(() => {
+                          const k = getKondisiForDisplay(bp?.pelimpahSampingWasteweir?.jumlahUnit || 0, bp?.pelimpahSampingWasteweir?.kondisi);
+                          return (
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getKondisiColor(k)}`}>
+                              {k}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -553,7 +589,14 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                         <span className="font-mono font-bold text-slate-900 block tabular-nums">
                           {bp?.trashrackSaringanSampah?.jumlahUnit || 0} Unit
                         </span>
-                        <span className="text-[10px] text-slate-500">{bp?.trashrackSaringanSampah?.kondisi || 'Baik'}</span>
+                        {(() => {
+                          const k = getKondisiForDisplay(bp?.trashrackSaringanSampah?.jumlahUnit || 0, bp?.trashrackSaringanSampah?.kondisi);
+                          return (
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getKondisiColor(k)}`}>
+                              {k}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -578,7 +621,14 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                         <span className="font-mono font-bold text-slate-900 block tabular-nums">
                           {bp?.jalanInspeksi?.panjangKm || 0} Km
                         </span>
-                        <span className="text-[10px] text-slate-500">{bp?.jalanInspeksi?.kondisi || 'Baik'}</span>
+                        {(() => {
+                          const k = getKondisiForDisplay(bp?.jalanInspeksi?.panjangKm || 0, bp?.jalanInspeksi?.kondisi);
+                          return (
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getKondisiColor(k)}`}>
+                              {k}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -591,7 +641,14 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                         <span className="font-mono font-bold text-slate-900 block tabular-nums">
                           {bp?.garduJagaRumahPintu?.jumlahUnit || 0} Unit
                         </span>
-                        <span className="text-[10px] text-slate-500">{bp?.garduJagaRumahPintu?.kondisi || 'Baik'}</span>
+                        {(() => {
+                          const k = getKondisiForDisplay(bp?.garduJagaRumahPintu?.jumlahUnit || 0, bp?.garduJagaRumahPintu?.kondisi);
+                          return (
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getKondisiColor(k)}`}>
+                              {k}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -604,7 +661,14 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                         <span className="font-mono font-bold text-slate-900 block tabular-nums">
                           {bp?.peilschaalSaluran?.jumlahUnit || 0} Unit
                         </span>
-                        <span className="text-[10px] text-slate-500">{bp?.peilschaalSaluran?.kondisi || 'Baik'}</span>
+                        {(() => {
+                          const k = getKondisiForDisplay(bp?.peilschaalSaluran?.jumlahUnit || 0, bp?.peilschaalSaluran?.kondisi);
+                          return (
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getKondisiColor(k)}`}>
+                              {k}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -617,7 +681,14 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                         <span className="font-mono font-bold text-slate-900 block tabular-nums">
                           {bp?.patokHektometerSempadan?.jumlahUnit || 0} Patok
                         </span>
-                        <span className="text-[10px] text-slate-500">{bp?.patokHektometerSempadan?.kondisi || 'Baik'}</span>
+                        {(() => {
+                          const k = getKondisiForDisplay(bp?.patokHektometerSempadan?.jumlahUnit || 0, bp?.patokHektometerSempadan?.kondisi);
+                          return (
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getKondisiColor(k)}`}>
+                              {k}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -636,36 +707,57 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                     <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums block">
                       {bp?.bangunanSilangDetail?.talang || 0} Unit
                     </strong>
-                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(bp?.bangunanSilangDetail?.kondisiTalang || 'Baik')}`}>
-                      {bp?.bangunanSilangDetail?.kondisiTalang || 'Baik'}
-                    </span>
+                    {(() => {
+                      const k = getKondisiForDisplay(bp?.bangunanSilangDetail?.talang || 0, bp?.bangunanSilangDetail?.kondisiTalang);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="p-3 bg-white rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Siphon (Inverted Siphon)</span>
                     <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums block">
                       {bp?.bangunanSilangDetail?.siphon || 0} Unit
                     </strong>
-                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(bp?.bangunanSilangDetail?.kondisiSiphon || 'Baik')}`}>
-                      {bp?.bangunanSilangDetail?.kondisiSiphon || 'Baik'}
-                    </span>
+                    {(() => {
+                      const k = getKondisiForDisplay(bp?.bangunanSilangDetail?.siphon || 0, bp?.bangunanSilangDetail?.kondisiSiphon);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="p-3 bg-white rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Gorong-gorong Pembawa</span>
                     <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums block">
                       {bp?.bangunanSilangDetail?.gorongGorong || di.jaringanSaluran?.jumlahGorongGorong || 0} Unit
                     </strong>
-                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(bp?.bangunanSilangDetail?.kondisiGorongGorong || di.jaringanSaluran?.kondisiGorongGorong || 'Baik')}`}>
-                      {bp?.bangunanSilangDetail?.kondisiGorongGorong || di.jaringanSaluran?.kondisiGorongGorong || 'Baik'}
-                    </span>
+                    {(() => {
+                      const u = bp?.bangunanSilangDetail?.gorongGorong || di.jaringanSaluran?.jumlahGorongGorong || 0;
+                      const k = getKondisiForDisplay(u, bp?.bangunanSilangDetail?.kondisiGorongGorong || di.jaringanSaluran?.kondisiGorongGorong);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="p-3 bg-white rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Terjunan / Got Miring</span>
                     <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums block">
                       {bp?.bangunanSilangDetail?.gotMiringTerjunan || 0} Unit
                     </strong>
-                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(bp?.bangunanSilangDetail?.kondisiGotMiringTerjunan || 'Baik')}`}>
-                      {bp?.bangunanSilangDetail?.gotMiringTerjunan !== undefined ? (bp?.bangunanSilangDetail?.kondisiGotMiringTerjunan || 'Baik') : 'Baik'}
-                    </span>
+                    {(() => {
+                      const k = getKondisiForDisplay(bp?.bangunanSilangDetail?.gotMiringTerjunan || 0, bp?.bangunanSilangDetail?.kondisiGotMiringTerjunan);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -682,8 +774,16 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                   <div className="text-lg font-mono font-bold text-slate-900 mt-1 tabular-nums">
                     {(di.jaringanSaluran?.panjangPrimerM || 0).toLocaleString('id-ID')} m
                   </div>
-                  <div className="text-xs mt-1 text-slate-600">
-                    Kondisi: <strong className="font-semibold">{di.jaringanSaluran?.kondisiPrimer}</strong>
+                  <div className="text-xs mt-1 text-slate-600 flex items-center gap-1.5">
+                    <span>Kondisi:</span>
+                    {(() => {
+                      const k = getKondisiForDisplay(di.jaringanSaluran?.panjangPrimerM || 0, di.jaringanSaluran?.kondisiPrimer);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -692,8 +792,16 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                   <div className="text-lg font-mono font-bold text-slate-900 mt-1 tabular-nums">
                     {(di.jaringanSaluran?.panjangSekunderM || 0).toLocaleString('id-ID')} m
                   </div>
-                  <div className="text-xs mt-1 text-slate-600">
-                    Kondisi: <strong className="font-semibold">{di.jaringanSaluran?.kondisiSekunder}</strong>
+                  <div className="text-xs mt-1 text-slate-600 flex items-center gap-1.5">
+                    <span>Kondisi:</span>
+                    {(() => {
+                      const k = getKondisiForDisplay(di.jaringanSaluran?.panjangSekunderM || 0, di.jaringanSaluran?.kondisiSekunder);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -702,8 +810,16 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                   <div className="text-lg font-mono font-bold text-slate-900 mt-1 tabular-nums">
                     {(di.jaringanSaluran?.panjangTersierM || 0).toLocaleString('id-ID')} m
                   </div>
-                  <div className="text-xs mt-1 text-slate-600">
-                    Kondisi: <strong className="font-semibold">{di.jaringanSaluran?.kondisiTersier}</strong>
+                  <div className="text-xs mt-1 text-slate-600 flex items-center gap-1.5">
+                    <span>Kondisi:</span>
+                    {(() => {
+                      const k = getKondisiForDisplay(di.jaringanSaluran?.panjangTersierM || 0, di.jaringanSaluran?.kondisiTersier);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -719,45 +835,70 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                     <strong className="text-base font-mono tabular-nums text-slate-900 block">
                       {di.jaringanSaluran?.jumlahBangunanBagi || 0} Unit
                     </strong>
-                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(di.jaringanSaluran?.kondisiBangunanBagi || 'Baik')}`}>
-                      {di.jaringanSaluran?.kondisiBangunanBagi || 'Baik'}
-                    </span>
+                    {(() => {
+                      const k = getKondisiForDisplay(di.jaringanSaluran?.jumlahBangunanBagi || 0, di.jaringanSaluran?.kondisiBangunanBagi);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Bangunan Sadap (S)</span>
                     <strong className="text-base font-mono tabular-nums text-slate-900 block">
                       {di.jaringanSaluran?.jumlahBangunanSadap || 0} Unit
                     </strong>
-                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(di.jaringanSaluran?.kondisiBangunanSadap || 'Baik')}`}>
-                      {di.jaringanSaluran?.kondisiBangunanSadap || 'Baik'}
-                    </span>
+                    {(() => {
+                      const k = getKondisiForDisplay(di.jaringanSaluran?.jumlahBangunanSadap || 0, di.jaringanSaluran?.kondisiBangunanSadap);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Bangunan Bagi-Sadap (BS)</span>
                     <strong className="text-base font-mono tabular-nums text-slate-900 block">
                       {di.jaringanSaluran?.jumlahBangunanBagiSadap || 0} Unit
                     </strong>
-                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(di.jaringanSaluran?.kondisiBangunanBagiSadap || 'Baik')}`}>
-                      {di.jaringanSaluran?.kondisiBangunanBagiSadap || 'Baik'}
-                    </span>
+                    {(() => {
+                      const k = getKondisiForDisplay(di.jaringanSaluran?.jumlahBangunanBagiSadap || 0, di.jaringanSaluran?.kondisiBangunanBagiSadap);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Gorong-gorong Saluran</span>
                     <strong className="text-base font-mono tabular-nums text-slate-900 block">
                       {di.jaringanSaluran?.jumlahGorongGorong || 0} Unit
                     </strong>
-                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(di.jaringanSaluran?.kondisiGorongGorong || 'Baik')}`}>
-                      {di.jaringanSaluran?.kondisiGorongGorong || 'Baik'}
-                    </span>
+                    {(() => {
+                      const k = getKondisiForDisplay(di.jaringanSaluran?.jumlahGorongGorong || 0, di.jaringanSaluran?.kondisiGorongGorong);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Talang / Siphon Pembawa</span>
                     <strong className="text-base font-mono tabular-nums text-slate-900 block">
                       {di.jaringanSaluran?.jumlahTalangSiphon || 0} Unit
                     </strong>
-                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(di.jaringanSaluran?.kondisiTalangSiphon || 'Baik')}`}>
-                      {di.jaringanSaluran?.kondisiTalangSiphon || 'Baik'}
-                    </span>
+                    {(() => {
+                      const k = getKondisiForDisplay(di.jaringanSaluran?.jumlahTalangSiphon || 0, di.jaringanSaluran?.kondisiTalangSiphon);
+                      return (
+                        <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(k)}`}>
+                          {k}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

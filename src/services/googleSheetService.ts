@@ -19,6 +19,18 @@ export interface SyncResult {
   totalSynced?: number;
 }
 
+export const resolveKondisiForUnit = (unitOrPanjang: number, kondisi?: string): KondisiFisik => {
+  if (unitOrPanjang <= 0) return 'Tidak Ada';
+  if (!kondisi || kondisi === 'Tidak Ada') return 'Baik';
+  return kondisi as KondisiFisik;
+};
+
+export const parseNumWithZero = (val: any, fallback: number = 0): number => {
+  if (val === undefined || val === null || val === '') return fallback;
+  const n = Number(val);
+  return isNaN(n) ? fallback : n;
+};
+
 export const googleSheetService = {
   getSheetUrl(): string {
     const saved = localStorage.getItem(STORAGE_SHEET_URL_KEY);
@@ -90,46 +102,106 @@ export const googleSheetService = {
       kantongLumpur: d.bangunanUtama?.kantongLumpur ? 'Ya' : 'Tidak',
       debitRataRataM3s: d.bangunanUtama?.debitRataRataM3s || 0,
       jembatanDesaTaniUnit: d.bangunanPelengkap?.jembatanDesaTani?.jumlahUnit || 0,
-      kondisiJembatanDesaTani: d.bangunanPelengkap?.jembatanDesaTani?.kondisi || 'Baik',
+      kondisiJembatanDesaTani: resolveKondisiForUnit(
+        d.bangunanPelengkap?.jembatanDesaTani?.jumlahUnit || 0,
+        d.bangunanPelengkap?.jembatanDesaTani?.kondisi
+      ),
       kubanganTernakUnit: d.bangunanPelengkap?.kubanganCuciTernak?.jumlahUnit || 0,
-      kondisiKubanganTernak: d.bangunanPelengkap?.kubanganCuciTernak?.kondisi || 'Baik',
+      kondisiKubanganTernak: resolveKondisiForUnit(
+        d.bangunanPelengkap?.kubanganCuciTernak?.jumlahUnit || 0,
+        d.bangunanPelengkap?.kubanganCuciTernak?.kondisi
+      ),
       tanggaCuciPetaniUnit: d.bangunanPelengkap?.tanggaCuciMandiPetani?.jumlahUnit || 0,
-      kondisiTanggaCuciPetani: d.bangunanPelengkap?.tanggaCuciMandiPetani?.kondisi || 'Baik',
+      kondisiTanggaCuciPetani: resolveKondisiForUnit(
+        d.bangunanPelengkap?.tanggaCuciMandiPetani?.jumlahUnit || 0,
+        d.bangunanPelengkap?.tanggaCuciMandiPetani?.kondisi
+      ),
       wasteweirUnit: d.bangunanPelengkap?.pelimpahSampingWasteweir?.jumlahUnit || 0,
-      kondisiWasteweir: d.bangunanPelengkap?.pelimpahSampingWasteweir?.kondisi || 'Baik',
+      kondisiWasteweir: resolveKondisiForUnit(
+        d.bangunanPelengkap?.pelimpahSampingWasteweir?.jumlahUnit || 0,
+        d.bangunanPelengkap?.pelimpahSampingWasteweir?.kondisi
+      ),
       trashrackUnit: d.bangunanPelengkap?.trashrackSaringanSampah?.jumlahUnit || 0,
-      kondisiTrashrack: d.bangunanPelengkap?.trashrackSaringanSampah?.kondisi || 'Baik',
+      kondisiTrashrack: resolveKondisiForUnit(
+        d.bangunanPelengkap?.trashrackSaringanSampah?.jumlahUnit || 0,
+        d.bangunanPelengkap?.trashrackSaringanSampah?.kondisi
+      ),
       garduJagaUnit: d.bangunanPelengkap?.garduJagaRumahPintu?.jumlahUnit || 0,
-      kondisiGarduJaga: d.bangunanPelengkap?.garduJagaRumahPintu?.kondisi || 'Baik',
+      kondisiGarduJaga: resolveKondisiForUnit(
+        d.bangunanPelengkap?.garduJagaRumahPintu?.jumlahUnit || 0,
+        d.bangunanPelengkap?.garduJagaRumahPintu?.kondisi
+      ),
       peilschaalSaluranUnit: d.bangunanPelengkap?.peilschaalSaluran?.jumlahUnit || 0,
-      kondisiPeilschaalSaluran: d.bangunanPelengkap?.peilschaalSaluran?.kondisi || 'Baik',
+      kondisiPeilschaalSaluran: resolveKondisiForUnit(
+        d.bangunanPelengkap?.peilschaalSaluran?.jumlahUnit || 0,
+        d.bangunanPelengkap?.peilschaalSaluran?.kondisi
+      ),
       patokHektometerUnit: d.bangunanPelengkap?.patokHektometerSempadan?.jumlahUnit || 0,
-      kondisiPatokHektometer: d.bangunanPelengkap?.patokHektometerSempadan?.kondisi || 'Baik',
+      kondisiPatokHektometer: resolveKondisiForUnit(
+        d.bangunanPelengkap?.patokHektometerSempadan?.jumlahUnit || 0,
+        d.bangunanPelengkap?.patokHektometerSempadan?.kondisi
+      ),
       jalanInspeksiKm: d.bangunanPelengkap?.jalanInspeksi?.panjangKm || 0,
       perkerasanJalan: d.bangunanPelengkap?.jalanInspeksi?.jenisPerkerasan || '',
-      kondisiJalanInspeksi: d.bangunanPelengkap?.jalanInspeksi?.kondisi || 'Baik',
+      kondisiJalanInspeksi: resolveKondisiForUnit(
+        d.bangunanPelengkap?.jalanInspeksi?.panjangKm || 0,
+        d.bangunanPelengkap?.jalanInspeksi?.kondisi
+      ),
       talangUnit: d.bangunanPelengkap?.bangunanSilangDetail?.talang || 0,
-      kondisiTalang: d.bangunanPelengkap?.bangunanSilangDetail?.kondisiTalang || 'Baik',
+      kondisiTalang: resolveKondisiForUnit(
+        d.bangunanPelengkap?.bangunanSilangDetail?.talang || 0,
+        d.bangunanPelengkap?.bangunanSilangDetail?.kondisiTalang
+      ),
       siphonUnit: d.bangunanPelengkap?.bangunanSilangDetail?.siphon || 0,
-      kondisiSiphon: d.bangunanPelengkap?.bangunanSilangDetail?.kondisiSiphon || 'Baik',
+      kondisiSiphon: resolveKondisiForUnit(
+        d.bangunanPelengkap?.bangunanSilangDetail?.siphon || 0,
+        d.bangunanPelengkap?.bangunanSilangDetail?.kondisiSiphon
+      ),
       gorongGorongUnit: d.bangunanPelengkap?.bangunanSilangDetail?.gorongGorong || d.jaringanSaluran?.jumlahGorongGorong || 0,
-      kondisiGorongGorong: d.bangunanPelengkap?.bangunanSilangDetail?.kondisiGorongGorong || d.jaringanSaluran?.kondisiGorongGorong || 'Baik',
+      kondisiGorongGorong: resolveKondisiForUnit(
+        d.bangunanPelengkap?.bangunanSilangDetail?.gorongGorong || d.jaringanSaluran?.jumlahGorongGorong || 0,
+        d.bangunanPelengkap?.bangunanSilangDetail?.kondisiGorongGorong || d.jaringanSaluran?.kondisiGorongGorong
+      ),
       terjunanGotMiringUnit: d.bangunanPelengkap?.bangunanSilangDetail?.gotMiringTerjunan || 0,
-      kondisiTerjunanGotMiring: d.bangunanPelengkap?.bangunanSilangDetail?.kondisiGotMiringTerjunan || 'Baik',
+      kondisiTerjunanGotMiring: resolveKondisiForUnit(
+        d.bangunanPelengkap?.bangunanSilangDetail?.gotMiringTerjunan || 0,
+        d.bangunanPelengkap?.bangunanSilangDetail?.kondisiGotMiringTerjunan
+      ),
       saluranPrimerM: d.jaringanSaluran?.panjangPrimerM || 0,
-      kondisiSaluranPrimer: d.jaringanSaluran?.kondisiPrimer || 'Baik',
+      kondisiSaluranPrimer: resolveKondisiForUnit(
+        d.jaringanSaluran?.panjangPrimerM || 0,
+        d.jaringanSaluran?.kondisiPrimer
+      ),
       saluranSekunderM: d.jaringanSaluran?.panjangSekunderM || 0,
-      kondisiSaluranSekunder: d.jaringanSaluran?.kondisiSekunder || 'Baik',
+      kondisiSaluranSekunder: resolveKondisiForUnit(
+        d.jaringanSaluran?.panjangSekunderM || 0,
+        d.jaringanSaluran?.kondisiSekunder
+      ),
       saluranTersierM: d.jaringanSaluran?.panjangTersierM || 0,
-      kondisiSaluranTersier: d.jaringanSaluran?.kondisiTersier || 'Baik',
+      kondisiSaluranTersier: resolveKondisiForUnit(
+        d.jaringanSaluran?.panjangTersierM || 0,
+        d.jaringanSaluran?.kondisiTersier
+      ),
       bangunanBagiUnit: d.jaringanSaluran?.jumlahBangunanBagi || 0,
-      kondisiBangunanBagi: d.jaringanSaluran?.kondisiBangunanBagi || 'Baik',
+      kondisiBangunanBagi: resolveKondisiForUnit(
+        d.jaringanSaluran?.jumlahBangunanBagi || 0,
+        d.jaringanSaluran?.kondisiBangunanBagi
+      ),
       bangunanSadapUnit: d.jaringanSaluran?.jumlahBangunanSadap || 0,
-      kondisiBangunanSadap: d.jaringanSaluran?.kondisiBangunanSadap || 'Baik',
+      kondisiBangunanSadap: resolveKondisiForUnit(
+        d.jaringanSaluran?.jumlahBangunanSadap || 0,
+        d.jaringanSaluran?.kondisiBangunanSadap
+      ),
       bangunanBagiSadapUnit: d.jaringanSaluran?.jumlahBangunanBagiSadap || 0,
-      kondisiBangunanBagiSadap: d.jaringanSaluran?.kondisiBangunanBagiSadap || 'Baik',
+      kondisiBangunanBagiSadap: resolveKondisiForUnit(
+        d.jaringanSaluran?.jumlahBangunanBagiSadap || 0,
+        d.jaringanSaluran?.kondisiBangunanBagiSadap
+      ),
       talangSiphonSaluranUnit: d.jaringanSaluran?.jumlahTalangSiphon || 0,
-      kondisiTalangSiphonSaluran: d.jaringanSaluran?.kondisiTalangSiphon || 'Baik',
+      kondisiTalangSiphonSaluran: resolveKondisiForUnit(
+        d.jaringanSaluran?.jumlahTalangSiphon || 0,
+        d.jaringanSaluran?.kondisiTalangSiphon
+      ),
       namaP3A: d.dataP3A?.namaP3A || '',
       ketuaP3A: d.dataP3A?.namaKetua || '',
       kontakP3A: d.dataP3A?.noKontak || '',
@@ -300,74 +372,101 @@ export const googleSheetService = {
           kantongLumpur: r.kantongLumpur === 'Ya',
           debitRataRataM3s: Number(r.debitRataRataM3s) || 0.5,
         },
-        bangunanPelengkap: {
-          jembatanDesaTani: {
-            jumlahUnit: Number(r.jembatanDesaTaniUnit) || 2,
-            kondisi: (r.kondisiJembatanDesaTani as KondisiFisik) || 'Baik',
-          },
-          kubanganCuciTernak: {
-            jumlahUnit: Number(r.kubanganTernakUnit) || 1,
-            kondisi: (r.kondisiKubanganTernak as KondisiFisik) || 'Baik',
-          },
-          tanggaCuciMandiPetani: {
-            jumlahUnit: Number(r.tanggaCuciPetaniUnit) || 3,
-            kondisi: (r.kondisiTanggaCuciPetani as KondisiFisik) || 'Baik',
-          },
-          pelimpahSampingWasteweir: {
-            jumlahUnit: Number(r.wasteweirUnit) || 1,
-            kondisi: (r.kondisiWasteweir as KondisiFisik) || 'Baik',
-          },
-          trashrackSaringanSampah: {
-            jumlahUnit: Number(r.trashrackUnit) || 1,
-            kondisi: (r.kondisiTrashrack as KondisiFisik) || 'Baik',
-          },
-          peilschaalSaluran: {
-            jumlahUnit: Number(r.peilschaalSaluranUnit) || 3,
-            kondisi: (r.kondisiPeilschaalSaluran as KondisiFisik) || 'Baik',
-          },
-          patokHektometerSempadan: {
-            jumlahUnit: Number(r.patokHektometerUnit) || 25,
-            kondisi: (r.kondisiPatokHektometer as KondisiFisik) || 'Baik',
-          },
-          garduJagaRumahPintu: {
-            jumlahUnit: Number(r.garduJagaUnit) || 1,
-            kondisi: (r.kondisiGarduJaga as KondisiFisik) || 'Baik',
-          },
-          jalanInspeksi: {
-            panjangKm: Number(r.jalanInspeksiKm) || 3,
-            lebarM: 2.8,
-            jenisPerkerasan: (r.perkerasanJalan as any) || 'Rabat Beton',
-            kondisi: (r.kondisiJalanInspeksi as KondisiFisik) || 'Baik',
-          },
-          bangunanSilangDetail: {
-            talang: Number(r.talangUnit) || 1,
-            kondisiTalang: (r.kondisiTalang as KondisiFisik) || 'Baik',
-            siphon: Number(r.siphonUnit) || 0,
-            kondisiSiphon: (r.kondisiSiphon as KondisiFisik) || 'Baik',
-            gorongGorong: Number(r.gorongGorongUnit) || 5,
-            kondisiGorongGorong: (r.kondisiGorongGorong as KondisiFisik) || 'Baik',
-            gotMiringTerjunan: Number(r.terjunanGotMiringUnit) || 1,
-            kondisiGotMiringTerjunan: (r.kondisiTerjunanGotMiring as KondisiFisik) || 'Baik',
-          },
-        },
-        jaringanSaluran: {
-          panjangPrimerM: Number(r.saluranPrimerM) || 2000,
-          kondisiPrimer: (r.kondisiSaluranPrimer as KondisiFisik) || 'Baik',
-          panjangSekunderM: Number(r.saluranSekunderM) || 3000,
-          kondisiSekunder: (r.kondisiSaluranSekunder as KondisiFisik) || 'Baik',
-          panjangTersierM: Number(r.saluranTersierM) || 4000,
-          kondisiTersier: (r.kondisiSaluranTersier as KondisiFisik) || 'Rusak Ringan',
-          jumlahBangunanBagi: Number(r.bangunanBagiUnit) || 2,
-          kondisiBangunanBagi: (r.kondisiBangunanBagi as KondisiFisik) || 'Baik',
-          jumlahBangunanSadap: Number(r.bangunanSadapUnit) || 4,
-          kondisiBangunanSadap: (r.kondisiBangunanSadap as KondisiFisik) || 'Baik',
-          jumlahBangunanBagiSadap: Number(r.bangunanBagiSadapUnit) || 2,
-          kondisiBangunanBagiSadap: (r.kondisiBangunanBagiSadap as KondisiFisik) || 'Baik',
-          jumlahTalangSiphon: Number(r.talangSiphonSaluranUnit) || 1,
-          kondisiTalangSiphon: (r.kondisiTalangSiphonSaluran as KondisiFisik) || 'Baik',
-          jumlahGorongGorong: Number(r.gorongGorongUnit) || 5,
-          kondisiGorongGorong: (r.kondisiGorongGorong as KondisiFisik) || 'Baik',
-        },
+        bangunanPelengkap: (() => {
+          const jembatanU = parseNumWithZero(r.jembatanDesaTaniUnit, 2);
+          const kubanganU = parseNumWithZero(r.kubanganTernakUnit, 1);
+          const tanggaU = parseNumWithZero(r.tanggaCuciPetaniUnit, 3);
+          const wasteweirU = parseNumWithZero(r.wasteweirUnit, 1);
+          const trashrackU = parseNumWithZero(r.trashrackUnit, 1);
+          const peilschaalU = parseNumWithZero(r.peilschaalSaluranUnit, 3);
+          const patokU = parseNumWithZero(r.patokHektometerUnit, 25);
+          const garduU = parseNumWithZero(r.garduJagaUnit, 1);
+          const jalanKm = parseNumWithZero(r.jalanInspeksiKm, 3);
+          const talangU = parseNumWithZero(r.talangUnit, 1);
+          const siphonU = parseNumWithZero(r.siphonUnit, 0);
+          const gorongU = parseNumWithZero(r.gorongGorongUnit, 5);
+          const terjunanU = parseNumWithZero(r.terjunanGotMiringUnit, 1);
+
+          return {
+            jembatanDesaTani: {
+              jumlahUnit: jembatanU,
+              kondisi: resolveKondisiForUnit(jembatanU, r.kondisiJembatanDesaTani),
+            },
+            kubanganCuciTernak: {
+              jumlahUnit: kubanganU,
+              kondisi: resolveKondisiForUnit(kubanganU, r.kondisiKubanganTernak),
+            },
+            tanggaCuciMandiPetani: {
+              jumlahUnit: tanggaU,
+              kondisi: resolveKondisiForUnit(tanggaU, r.kondisiTanggaCuciPetani),
+            },
+            pelimpahSampingWasteweir: {
+              jumlahUnit: wasteweirU,
+              kondisi: resolveKondisiForUnit(wasteweirU, r.kondisiWasteweir),
+            },
+            trashrackSaringanSampah: {
+              jumlahUnit: trashrackU,
+              kondisi: resolveKondisiForUnit(trashrackU, r.kondisiTrashrack),
+            },
+            peilschaalSaluran: {
+              jumlahUnit: peilschaalU,
+              kondisi: resolveKondisiForUnit(peilschaalU, r.kondisiPeilschaalSaluran),
+            },
+            patokHektometerSempadan: {
+              jumlahUnit: patokU,
+              kondisi: resolveKondisiForUnit(patokU, r.kondisiPatokHektometer),
+            },
+            garduJagaRumahPintu: {
+              jumlahUnit: garduU,
+              kondisi: resolveKondisiForUnit(garduU, r.kondisiGarduJaga),
+            },
+            jalanInspeksi: {
+              panjangKm: jalanKm,
+              lebarM: parseNumWithZero(r.lebarJalanM, 2.8),
+              jenisPerkerasan: (r.perkerasanJalan as any) || 'Rabat Beton',
+              kondisi: resolveKondisiForUnit(jalanKm, r.kondisiJalanInspeksi),
+            },
+            bangunanSilangDetail: {
+              talang: talangU,
+              kondisiTalang: resolveKondisiForUnit(talangU, r.kondisiTalang),
+              siphon: siphonU,
+              kondisiSiphon: resolveKondisiForUnit(siphonU, r.kondisiSiphon),
+              gorongGorong: gorongU,
+              kondisiGorongGorong: resolveKondisiForUnit(gorongU, r.kondisiGorongGorong),
+              gotMiringTerjunan: terjunanU,
+              kondisiGotMiringTerjunan: resolveKondisiForUnit(terjunanU, r.kondisiTerjunanGotMiring),
+            },
+          };
+        })(),
+        jaringanSaluran: (() => {
+          const salPrimerM = parseNumWithZero(r.saluranPrimerM, 2000);
+          const salSekunderM = parseNumWithZero(r.saluranSekunderM, 3000);
+          const salTersierM = parseNumWithZero(r.saluranTersierM, 4000);
+          const bBagiU = parseNumWithZero(r.bangunanBagiUnit, 2);
+          const bSadapU = parseNumWithZero(r.bangunanSadapUnit, 4);
+          const bBagiSadapU = parseNumWithZero(r.bangunanBagiSadapUnit, 2);
+          const talangSiphonU = parseNumWithZero(r.talangSiphonSaluranUnit, 1);
+          const gorongU = parseNumWithZero(r.gorongGorongUnit, 5);
+
+          return {
+            panjangPrimerM: salPrimerM,
+            kondisiPrimer: resolveKondisiForUnit(salPrimerM, r.kondisiSaluranPrimer),
+            panjangSekunderM: salSekunderM,
+            kondisiSekunder: resolveKondisiForUnit(salSekunderM, r.kondisiSaluranSekunder),
+            panjangTersierM: salTersierM,
+            kondisiTersier: resolveKondisiForUnit(salTersierM, r.kondisiSaluranTersier),
+            jumlahBangunanBagi: bBagiU,
+            kondisiBangunanBagi: resolveKondisiForUnit(bBagiU, r.kondisiBangunanBagi),
+            jumlahBangunanSadap: bSadapU,
+            kondisiBangunanSadap: resolveKondisiForUnit(bSadapU, r.kondisiBangunanSadap),
+            jumlahBangunanBagiSadap: bBagiSadapU,
+            kondisiBangunanBagiSadap: resolveKondisiForUnit(bBagiSadapU, r.kondisiBangunanBagiSadap),
+            jumlahTalangSiphon: talangSiphonU,
+            kondisiTalangSiphon: resolveKondisiForUnit(talangSiphonU, r.kondisiTalangSiphonSaluran),
+            jumlahGorongGorong: gorongU,
+            kondisiGorongGorong: resolveKondisiForUnit(gorongU, r.kondisiGorongGorong),
+          };
+        })(),
         dataP3A: {
           namaP3A: r.namaP3A || '',
           namaKetua: r.ketuaP3A || '',

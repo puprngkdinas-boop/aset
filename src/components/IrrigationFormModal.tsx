@@ -8,6 +8,7 @@ import {
   KondisiFisik,
   TipeBangunanUtama,
   BangunanPelengkap,
+  JaringanSaluran,
   KategoriUsulan,
   SumberDana,
   StatusUsulan,
@@ -135,7 +136,37 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
 
   useEffect(() => {
     if (initialData) {
-      setFormData(JSON.parse(JSON.stringify(initialData)));
+      const cloned = JSON.parse(JSON.stringify(initialData)) as DaerahIrigasi;
+      if (cloned.bangunanPelengkap) {
+        const bp = cloned.bangunanPelengkap;
+        if (bp.jembatanDesaTani && bp.jembatanDesaTani.jumlahUnit <= 0) bp.jembatanDesaTani.kondisi = 'Tidak Ada';
+        if (bp.kubanganCuciTernak && bp.kubanganCuciTernak.jumlahUnit <= 0) bp.kubanganCuciTernak.kondisi = 'Tidak Ada';
+        if (bp.tanggaCuciMandiPetani && bp.tanggaCuciMandiPetani.jumlahUnit <= 0) bp.tanggaCuciMandiPetani.kondisi = 'Tidak Ada';
+        if (bp.pelimpahSampingWasteweir && bp.pelimpahSampingWasteweir.jumlahUnit <= 0) bp.pelimpahSampingWasteweir.kondisi = 'Tidak Ada';
+        if (bp.trashrackSaringanSampah && bp.trashrackSaringanSampah.jumlahUnit <= 0) bp.trashrackSaringanSampah.kondisi = 'Tidak Ada';
+        if (bp.garduJagaRumahPintu && bp.garduJagaRumahPintu.jumlahUnit <= 0) bp.garduJagaRumahPintu.kondisi = 'Tidak Ada';
+        if (bp.peilschaalSaluran && bp.peilschaalSaluran.jumlahUnit <= 0) bp.peilschaalSaluran.kondisi = 'Tidak Ada';
+        if (bp.patokHektometerSempadan && bp.patokHektometerSempadan.jumlahUnit <= 0) bp.patokHektometerSempadan.kondisi = 'Tidak Ada';
+        if (bp.jalanInspeksi && (bp.jalanInspeksi.panjangKm || 0) <= 0) bp.jalanInspeksi.kondisi = 'Tidak Ada';
+        if (bp.bangunanSilangDetail) {
+          if ((bp.bangunanSilangDetail.talang || 0) <= 0) bp.bangunanSilangDetail.kondisiTalang = 'Tidak Ada';
+          if ((bp.bangunanSilangDetail.siphon || 0) <= 0) bp.bangunanSilangDetail.kondisiSiphon = 'Tidak Ada';
+          if ((bp.bangunanSilangDetail.gorongGorong || 0) <= 0) bp.bangunanSilangDetail.kondisiGorongGorong = 'Tidak Ada';
+          if ((bp.bangunanSilangDetail.gotMiringTerjunan || 0) <= 0) bp.bangunanSilangDetail.kondisiGotMiringTerjunan = 'Tidak Ada';
+        }
+      }
+      if (cloned.jaringanSaluran) {
+        const js = cloned.jaringanSaluran;
+        if ((js.panjangPrimerM || 0) <= 0) js.kondisiPrimer = 'Tidak Ada';
+        if ((js.panjangSekunderM || 0) <= 0) js.kondisiSekunder = 'Tidak Ada';
+        if ((js.panjangTersierM || 0) <= 0) js.kondisiTersier = 'Tidak Ada';
+        if ((js.jumlahBangunanBagi || 0) <= 0) js.kondisiBangunanBagi = 'Tidak Ada';
+        if ((js.jumlahBangunanSadap || 0) <= 0) js.kondisiBangunanSadap = 'Tidak Ada';
+        if ((js.jumlahBangunanBagiSadap || 0) <= 0) js.kondisiBangunanBagiSadap = 'Tidak Ada';
+        if ((js.jumlahGorongGorong || 0) <= 0) js.kondisiGorongGorong = 'Tidak Ada';
+        if ((js.jumlahTalangSiphon || 0) <= 0) js.kondisiTalangSiphon = 'Tidak Ada';
+      }
+      setFormData(cloned);
       setIsCustomDesa(false);
     } else {
       setFormData({
@@ -202,7 +233,7 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
             talang: 1,
             kondisiTalang: 'Baik',
             siphon: 0,
-            kondisiSiphon: 'Baik',
+            kondisiSiphon: 'Tidak Ada',
             gorongGorong: 6,
             kondisiGorongGorong: 'Baik',
             gotMiringTerjunan: 2,
@@ -251,6 +282,20 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Helper otomatis: jika unit <= 0 maka kondisi otomatis 'Tidak Ada'.
+  // Jika unit > 0 dan sebelumnya 'Tidak Ada', otomatis 'Baik'.
+  const autoKondisiForUnit = (unit: number, currentKondisi?: KondisiFisik): KondisiFisik => {
+    if (unit <= 0) return 'Tidak Ada';
+    if (!currentKondisi || currentKondisi === 'Tidak Ada') return 'Baik';
+    return currentKondisi;
+  };
+
+  const getDisplayKondisi = (unit: number, currentKondisi?: KondisiFisik): KondisiFisik => {
+    if (unit <= 0) return 'Tidak Ada';
+    if (!currentKondisi || currentKondisi === 'Tidak Ada') return 'Baik';
+    return currentKondisi;
+  };
+
   const handleKecamatanChange = (newKec: KecamatanNagekeo) => {
     const listDesa = getDaftarDesa(newKec);
     setFormData((prev) => ({
@@ -290,6 +335,97 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
       alert('Nama Daerah Irigasi wajib diisi.');
       return;
     }
+
+    const sanitizeBp = (b?: BangunanPelengkap): BangunanPelengkap => {
+      const defBp: BangunanPelengkap = b || {
+        jembatanDesaTani: { jumlahUnit: 2, kondisi: 'Baik' },
+        kubanganCuciTernak: { jumlahUnit: 1, kondisi: 'Baik' },
+        tanggaCuciMandiPetani: { jumlahUnit: 3, kondisi: 'Baik' },
+        pelimpahSampingWasteweir: { jumlahUnit: 1, kondisi: 'Baik' },
+        trashrackSaringanSampah: { jumlahUnit: 1, kondisi: 'Baik' },
+        peilschaalSaluran: { jumlahUnit: 2, kondisi: 'Baik' },
+        patokHektometerSempadan: { jumlahUnit: 20, kondisi: 'Baik' },
+        garduJagaRumahPintu: { jumlahUnit: 1, kondisi: 'Baik' },
+        jalanInspeksi: {
+          panjangKm: 2.5,
+          lebarM: 2.8,
+          jenisPerkerasan: 'Rabat Beton',
+          kondisi: 'Baik',
+        },
+        bangunanSilangDetail: {
+          talang: 1,
+          kondisiTalang: 'Baik',
+          siphon: 0,
+          kondisiSiphon: 'Tidak Ada',
+          gorongGorong: 5,
+          kondisiGorongGorong: 'Baik',
+          gotMiringTerjunan: 1,
+          kondisiGotMiringTerjunan: 'Baik',
+        },
+      };
+
+      const res = JSON.parse(JSON.stringify(defBp)) as BangunanPelengkap;
+      const fixK = (unit: number, k?: KondisiFisik): KondisiFisik => {
+        if (unit <= 0) return 'Tidak Ada';
+        if (!k || k === 'Tidak Ada') return 'Baik';
+        return k;
+      };
+
+      if (res.jembatanDesaTani) res.jembatanDesaTani.kondisi = fixK(res.jembatanDesaTani.jumlahUnit || 0, res.jembatanDesaTani.kondisi);
+      if (res.kubanganCuciTernak) res.kubanganCuciTernak.kondisi = fixK(res.kubanganCuciTernak.jumlahUnit || 0, res.kubanganCuciTernak.kondisi);
+      if (res.tanggaCuciMandiPetani) res.tanggaCuciMandiPetani.kondisi = fixK(res.tanggaCuciMandiPetani.jumlahUnit || 0, res.tanggaCuciMandiPetani.kondisi);
+      if (res.pelimpahSampingWasteweir) res.pelimpahSampingWasteweir.kondisi = fixK(res.pelimpahSampingWasteweir.jumlahUnit || 0, res.pelimpahSampingWasteweir.kondisi);
+      if (res.trashrackSaringanSampah) res.trashrackSaringanSampah.kondisi = fixK(res.trashrackSaringanSampah.jumlahUnit || 0, res.trashrackSaringanSampah.kondisi);
+      if (res.garduJagaRumahPintu) res.garduJagaRumahPintu.kondisi = fixK(res.garduJagaRumahPintu.jumlahUnit || 0, res.garduJagaRumahPintu.kondisi);
+      if (res.peilschaalSaluran) res.peilschaalSaluran.kondisi = fixK(res.peilschaalSaluran.jumlahUnit || 0, res.peilschaalSaluran.kondisi);
+      if (res.patokHektometerSempadan) res.patokHektometerSempadan.kondisi = fixK(res.patokHektometerSempadan.jumlahUnit || 0, res.patokHektometerSempadan.kondisi);
+      if (res.jalanInspeksi) res.jalanInspeksi.kondisi = fixK(res.jalanInspeksi.panjangKm || 0, res.jalanInspeksi.kondisi);
+      if (res.bangunanSilangDetail) {
+        res.bangunanSilangDetail.kondisiTalang = fixK(res.bangunanSilangDetail.talang || 0, res.bangunanSilangDetail.kondisiTalang);
+        res.bangunanSilangDetail.kondisiSiphon = fixK(res.bangunanSilangDetail.siphon || 0, res.bangunanSilangDetail.kondisiSiphon);
+        res.bangunanSilangDetail.kondisiGorongGorong = fixK(res.bangunanSilangDetail.gorongGorong || 0, res.bangunanSilangDetail.kondisiGorongGorong);
+        res.bangunanSilangDetail.kondisiGotMiringTerjunan = fixK(res.bangunanSilangDetail.gotMiringTerjunan || 0, res.bangunanSilangDetail.kondisiGotMiringTerjunan);
+      }
+      return res;
+    };
+
+    const sanitizeJs = (j?: JaringanSaluran): JaringanSaluran => {
+      const defJs: JaringanSaluran = j || {
+        panjangPrimerM: 2000,
+        kondisiPrimer: 'Baik',
+        panjangSekunderM: 3000,
+        kondisiSekunder: 'Baik',
+        panjangTersierM: 4000,
+        kondisiTersier: 'Rusak Ringan',
+        jumlahBangunanBagi: 2,
+        kondisiBangunanBagi: 'Baik',
+        jumlahBangunanSadap: 4,
+        kondisiBangunanSadap: 'Baik',
+        jumlahBangunanBagiSadap: 2,
+        kondisiBangunanBagiSadap: 'Baik',
+        jumlahTalangSiphon: 1,
+        kondisiTalangSiphon: 'Baik',
+        jumlahGorongGorong: 5,
+        kondisiGorongGorong: 'Baik',
+      };
+
+      const res = JSON.parse(JSON.stringify(defJs)) as JaringanSaluran;
+      const fixK = (unit: number, k?: KondisiFisik): KondisiFisik => {
+        if (unit <= 0) return 'Tidak Ada';
+        if (!k || k === 'Tidak Ada') return 'Baik';
+        return k;
+      };
+
+      res.kondisiPrimer = fixK(res.panjangPrimerM || 0, res.kondisiPrimer);
+      res.kondisiSekunder = fixK(res.panjangSekunderM || 0, res.kondisiSekunder);
+      res.kondisiTersier = fixK(res.panjangTersierM || 0, res.kondisiTersier);
+      res.kondisiBangunanBagi = fixK(res.jumlahBangunanBagi || 0, res.kondisiBangunanBagi);
+      res.kondisiBangunanSadap = fixK(res.jumlahBangunanSadap || 0, res.kondisiBangunanSadap);
+      res.kondisiBangunanBagiSadap = fixK(res.jumlahBangunanBagiSadap || 0, res.kondisiBangunanBagiSadap);
+      res.kondisiTalangSiphon = fixK(res.jumlahTalangSiphon || 0, res.kondisiTalangSiphon);
+      res.kondisiGorongGorong = fixK(res.jumlahGorongGorong || 0, res.kondisiGorongGorong);
+      return res;
+    };
 
     const finalDI: DaerahIrigasi = {
       id: formData.id || `di-${Date.now()}`,
@@ -333,41 +469,8 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
         kantongLumpur: true,
         debitRataRataM3s: 0.5,
       },
-      bangunanPelengkap: formData.bangunanPelengkap || {
-        jembatanDesaTani: { jumlahUnit: 2, kondisi: 'Baik' },
-        kubanganCuciTernak: { jumlahUnit: 1, kondisi: 'Baik' },
-        tanggaCuciMandiPetani: { jumlahUnit: 3, kondisi: 'Baik' },
-        pelimpahSampingWasteweir: { jumlahUnit: 1, kondisi: 'Baik' },
-        trashrackSaringanSampah: { jumlahUnit: 1, kondisi: 'Baik' },
-        peilschaalSaluran: { jumlahUnit: 2, kondisi: 'Baik' },
-        patokHektometerSempadan: { jumlahUnit: 20, kondisi: 'Baik' },
-        garduJagaRumahPintu: { jumlahUnit: 1, kondisi: 'Baik' },
-        jalanInspeksi: {
-          panjangKm: 2.5,
-          lebarM: 2.8,
-          jenisPerkerasan: 'Rabat Beton',
-          kondisi: 'Baik',
-        },
-        bangunanSilangDetail: {
-          talang: 1,
-          siphon: 0,
-          gorongGorong: 5,
-          gotMiringTerjunan: 1,
-        },
-      },
-      jaringanSaluran: formData.jaringanSaluran || {
-        panjangPrimerM: 2000,
-        kondisiPrimer: 'Baik',
-        panjangSekunderM: 3000,
-        kondisiSekunder: 'Baik',
-        panjangTersierM: 4000,
-        kondisiTersier: 'Rusak Ringan',
-        jumlahBangunanBagi: 2,
-        jumlahBangunanSadap: 4,
-        jumlahBangunanBagiSadap: 2,
-        jumlahTalangSiphon: 1,
-        jumlahGorongGorong: 5,
-      },
+      bangunanPelengkap: sanitizeBp(formData.bangunanPelengkap),
+      jaringanSaluran: sanitizeJs(formData.jaringanSaluran),
       dataP3A: formData.dataP3A || {
         namaP3A: '',
         namaKetua: '',
@@ -985,7 +1088,7 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
                     1. Fasilitas Pelengkap Sosial & Pertanian
                   </h4>
-                  <span className="text-[10px] text-slate-500 font-medium">Jumlah Unit & Penilaian Kondisi</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Jika Unit = 0, Kondisi Otomatis "Tidak Ada"</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -998,35 +1101,47 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.jembatanDesaTani?.jumlahUnit ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              jembatanDesaTani: {
-                                jumlahUnit: parseInt(e.target.value, 10) || 0,
-                                kondisi: bp?.jembatanDesaTani?.kondisi || 'Baik',
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                jembatanDesaTani: {
+                                  jumlahUnit: u,
+                                  kondisi: u <= 0 ? 'Tidak Ada' : autoKondisiForUnit(u, bp?.jembatanDesaTani?.kondisi),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={bp?.jembatanDesaTani?.kondisi || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              jembatanDesaTani: {
-                                jumlahUnit: bp?.jembatanDesaTani?.jumlahUnit ?? 0,
-                                kondisi: e.target.value as KondisiFisik,
+                          value={getDisplayKondisi(bp?.jembatanDesaTani?.jumlahUnit ?? 0, bp?.jembatanDesaTani?.kondisi)}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.jembatanDesaTani?.jumlahUnit ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                jembatanDesaTani: {
+                                  jumlahUnit: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisi: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            (bp?.jembatanDesaTani?.jumlahUnit ?? 0) <= 0 || bp?.jembatanDesaTani?.kondisi === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic font-medium'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1045,35 +1160,47 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.kubanganCuciTernak?.jumlahUnit ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              kubanganCuciTernak: {
-                                jumlahUnit: parseInt(e.target.value, 10) || 0,
-                                kondisi: bp?.kubanganCuciTernak?.kondisi || 'Baik',
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                kubanganCuciTernak: {
+                                  jumlahUnit: u,
+                                  kondisi: u <= 0 ? 'Tidak Ada' : autoKondisiForUnit(u, bp?.kubanganCuciTernak?.kondisi),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={bp?.kubanganCuciTernak?.kondisi || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              kubanganCuciTernak: {
-                                jumlahUnit: bp?.kubanganCuciTernak?.jumlahUnit ?? 0,
-                                kondisi: e.target.value as KondisiFisik,
+                          value={getDisplayKondisi(bp?.kubanganCuciTernak?.jumlahUnit ?? 0, bp?.kubanganCuciTernak?.kondisi)}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.kubanganCuciTernak?.jumlahUnit ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                kubanganCuciTernak: {
+                                  jumlahUnit: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisi: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            (bp?.kubanganCuciTernak?.jumlahUnit ?? 0) <= 0 || bp?.kubanganCuciTernak?.kondisi === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic font-medium'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1092,35 +1219,47 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.tanggaCuciMandiPetani?.jumlahUnit ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              tanggaCuciMandiPetani: {
-                                jumlahUnit: parseInt(e.target.value, 10) || 0,
-                                kondisi: bp?.tanggaCuciMandiPetani?.kondisi || 'Baik',
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                tanggaCuciMandiPetani: {
+                                  jumlahUnit: u,
+                                  kondisi: u <= 0 ? 'Tidak Ada' : autoKondisiForUnit(u, bp?.tanggaCuciMandiPetani?.kondisi),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={bp?.tanggaCuciMandiPetani?.kondisi || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              tanggaCuciMandiPetani: {
-                                jumlahUnit: bp?.tanggaCuciMandiPetani?.jumlahUnit ?? 0,
-                                kondisi: e.target.value as KondisiFisik,
+                          value={getDisplayKondisi(bp?.tanggaCuciMandiPetani?.jumlahUnit ?? 0, bp?.tanggaCuciMandiPetani?.kondisi)}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.tanggaCuciMandiPetani?.jumlahUnit ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                tanggaCuciMandiPetani: {
+                                  jumlahUnit: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisi: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            (bp?.tanggaCuciMandiPetani?.jumlahUnit ?? 0) <= 0 || bp?.tanggaCuciMandiPetani?.kondisi === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic font-medium'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1139,35 +1278,47 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.pelimpahSampingWasteweir?.jumlahUnit ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              pelimpahSampingWasteweir: {
-                                jumlahUnit: parseInt(e.target.value, 10) || 0,
-                                kondisi: bp?.pelimpahSampingWasteweir?.kondisi || 'Baik',
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                pelimpahSampingWasteweir: {
+                                  jumlahUnit: u,
+                                  kondisi: u <= 0 ? 'Tidak Ada' : autoKondisiForUnit(u, bp?.pelimpahSampingWasteweir?.kondisi),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={bp?.pelimpahSampingWasteweir?.kondisi || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              pelimpahSampingWasteweir: {
-                                jumlahUnit: bp?.pelimpahSampingWasteweir?.jumlahUnit ?? 0,
-                                kondisi: e.target.value as KondisiFisik,
+                          value={getDisplayKondisi(bp?.pelimpahSampingWasteweir?.jumlahUnit ?? 0, bp?.pelimpahSampingWasteweir?.kondisi)}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.pelimpahSampingWasteweir?.jumlahUnit ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                pelimpahSampingWasteweir: {
+                                  jumlahUnit: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisi: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            (bp?.pelimpahSampingWasteweir?.jumlahUnit ?? 0) <= 0 || bp?.pelimpahSampingWasteweir?.kondisi === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic font-medium'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1186,35 +1337,47 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.trashrackSaringanSampah?.jumlahUnit ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              trashrackSaringanSampah: {
-                                jumlahUnit: parseInt(e.target.value, 10) || 0,
-                                kondisi: bp?.trashrackSaringanSampah?.kondisi || 'Baik',
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                trashrackSaringanSampah: {
+                                  jumlahUnit: u,
+                                  kondisi: u <= 0 ? 'Tidak Ada' : autoKondisiForUnit(u, bp?.trashrackSaringanSampah?.kondisi),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={bp?.trashrackSaringanSampah?.kondisi || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              trashrackSaringanSampah: {
-                                jumlahUnit: bp?.trashrackSaringanSampah?.jumlahUnit ?? 0,
-                                kondisi: e.target.value as KondisiFisik,
+                          value={getDisplayKondisi(bp?.trashrackSaringanSampah?.jumlahUnit ?? 0, bp?.trashrackSaringanSampah?.kondisi)}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.trashrackSaringanSampah?.jumlahUnit ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                trashrackSaringanSampah: {
+                                  jumlahUnit: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisi: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            (bp?.trashrackSaringanSampah?.jumlahUnit ?? 0) <= 0 || bp?.trashrackSaringanSampah?.kondisi === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic font-medium'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1232,7 +1395,7 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
                     2. Prasarana O&P, Patok Sempadan & Jalan Inspeksi
                   </h4>
-                  <span className="text-[10px] text-slate-500 font-medium">Inventarisasi & Penilaian Kondisi</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Jika Unit = 0, Kondisi Otomatis "Tidak Ada"</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1245,35 +1408,47 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.garduJagaRumahPintu?.jumlahUnit ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              garduJagaRumahPintu: {
-                                jumlahUnit: parseInt(e.target.value, 10) || 0,
-                                kondisi: bp?.garduJagaRumahPintu?.kondisi || 'Baik',
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                garduJagaRumahPintu: {
+                                  jumlahUnit: u,
+                                  kondisi: autoKondisiForUnit(u, bp?.garduJagaRumahPintu?.kondisi),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={bp?.garduJagaRumahPintu?.kondisi || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              garduJagaRumahPintu: {
-                                jumlahUnit: bp?.garduJagaRumahPintu?.jumlahUnit ?? 0,
-                                kondisi: e.target.value as KondisiFisik,
+                          value={bp?.garduJagaRumahPintu?.kondisi || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.garduJagaRumahPintu?.jumlahUnit ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                garduJagaRumahPintu: {
+                                  jumlahUnit: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisi: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            bp?.garduJagaRumahPintu?.kondisi === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1292,35 +1467,47 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.peilschaalSaluran?.jumlahUnit ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              peilschaalSaluran: {
-                                jumlahUnit: parseInt(e.target.value, 10) || 0,
-                                kondisi: bp?.peilschaalSaluran?.kondisi || 'Baik',
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                peilschaalSaluran: {
+                                  jumlahUnit: u,
+                                  kondisi: autoKondisiForUnit(u, bp?.peilschaalSaluran?.kondisi),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={bp?.peilschaalSaluran?.kondisi || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              peilschaalSaluran: {
-                                jumlahUnit: bp?.peilschaalSaluran?.jumlahUnit ?? 0,
-                                kondisi: e.target.value as KondisiFisik,
+                          value={bp?.peilschaalSaluran?.kondisi || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.peilschaalSaluran?.jumlahUnit ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                peilschaalSaluran: {
+                                  jumlahUnit: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisi: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            bp?.peilschaalSaluran?.kondisi === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1339,35 +1526,47 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.patokHektometerSempadan?.jumlahUnit ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              patokHektometerSempadan: {
-                                jumlahUnit: parseInt(e.target.value, 10) || 0,
-                                kondisi: bp?.patokHektometerSempadan?.kondisi || 'Baik',
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                patokHektometerSempadan: {
+                                  jumlahUnit: u,
+                                  kondisi: autoKondisiForUnit(u, bp?.patokHektometerSempadan?.kondisi),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={bp?.patokHektometerSempadan?.kondisi || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              patokHektometerSempadan: {
-                                jumlahUnit: bp?.patokHektometerSempadan?.jumlahUnit ?? 0,
-                                kondisi: e.target.value as KondisiFisik,
+                          value={bp?.patokHektometerSempadan?.kondisi || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.patokHektometerSempadan?.jumlahUnit ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                patokHektometerSempadan: {
+                                  jumlahUnit: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisi: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            bp?.patokHektometerSempadan?.kondisi === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1388,16 +1587,20 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         type="number"
                         step="any"
                         value={bp?.jalanInspeksi?.panjangKm ?? 0}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          bangunanPelengkap: {
-                            ...(bp as any),
-                            jalanInspeksi: {
-                              ...(bp?.jalanInspeksi as any),
-                              panjangKm: parseFloat(e.target.value) || 0,
+                        onChange={(e) => {
+                          const p = Math.max(0, parseFloat(e.target.value) || 0);
+                          setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              jalanInspeksi: {
+                                ...(bp?.jalanInspeksi as any),
+                                panjangKm: p,
+                                kondisi: autoKondisiForUnit(p, bp?.jalanInspeksi?.kondisi),
+                              },
                             },
-                          },
-                        })}
+                          });
+                        }}
                         className="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                       />
                     </div>
@@ -1445,19 +1648,29 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                     <div>
                       <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
                       <select
-                        value={bp?.jalanInspeksi?.kondisi || 'Baik'}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          bangunanPelengkap: {
-                            ...(bp as any),
-                            jalanInspeksi: {
-                              ...(bp?.jalanInspeksi as any),
-                              kondisi: e.target.value as KondisiFisik,
+                        value={bp?.jalanInspeksi?.kondisi || 'Tidak Ada'}
+                        onChange={(e) => {
+                          const k = e.target.value as KondisiFisik;
+                          const currP = bp?.jalanInspeksi?.panjangKm ?? 0;
+                          setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              jalanInspeksi: {
+                                ...(bp?.jalanInspeksi as any),
+                                panjangKm: k === 'Tidak Ada' ? 0 : (currP <= 0 ? 1.0 : currP),
+                                kondisi: k,
+                              },
                             },
-                          },
-                        })}
-                        className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          });
+                        }}
+                        className={`w-full px-2.5 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                          bp?.jalanInspeksi?.kondisi === 'Tidak Ada'
+                            ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                            : 'bg-slate-50 border-slate-300 text-slate-900'
+                        }`}
                       >
+                        <option value="Tidak Ada">Tidak Ada (0 Km)</option>
                         <option value="Baik">Baik</option>
                         <option value="Rusak Ringan">Rusak Ringan</option>
                         <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1474,7 +1687,7 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
                     3. Bangunan Silang Saluran (Cross Structures)
                   </h4>
-                  <span className="text-[10px] text-slate-500 font-medium">Jumlah Unit & Penilaian Kondisi</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Jika Unit = 0, Kondisi Otomatis "Tidak Ada"</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -1487,35 +1700,49 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.bangunanSilangDetail?.talang ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              bangunanSilangDetail: {
-                                ...(bp?.bangunanSilangDetail as any),
-                                talang: parseInt(e.target.value, 10) || 0,
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                bangunanSilangDetail: {
+                                  ...(bp?.bangunanSilangDetail as any),
+                                  talang: u,
+                                  kondisiTalang: autoKondisiForUnit(u, bp?.bangunanSilangDetail?.kondisiTalang),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
                         <select
-                          value={bp?.bangunanSilangDetail?.kondisiTalang || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              bangunanSilangDetail: {
-                                ...(bp?.bangunanSilangDetail as any),
-                                kondisiTalang: e.target.value as KondisiFisik,
+                          value={bp?.bangunanSilangDetail?.kondisiTalang || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.bangunanSilangDetail?.talang ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                bangunanSilangDetail: {
+                                  ...(bp?.bangunanSilangDetail as any),
+                                  talang: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisiTalang: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            bp?.bangunanSilangDetail?.kondisiTalang === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1534,35 +1761,49 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.bangunanSilangDetail?.siphon ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              bangunanSilangDetail: {
-                                ...(bp?.bangunanSilangDetail as any),
-                                siphon: parseInt(e.target.value, 10) || 0,
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                bangunanSilangDetail: {
+                                  ...(bp?.bangunanSilangDetail as any),
+                                  siphon: u,
+                                  kondisiSiphon: autoKondisiForUnit(u, bp?.bangunanSilangDetail?.kondisiSiphon),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
                         <select
-                          value={bp?.bangunanSilangDetail?.kondisiSiphon || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              bangunanSilangDetail: {
-                                ...(bp?.bangunanSilangDetail as any),
-                                kondisiSiphon: e.target.value as KondisiFisik,
+                          value={bp?.bangunanSilangDetail?.kondisiSiphon || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.bangunanSilangDetail?.siphon ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                bangunanSilangDetail: {
+                                  ...(bp?.bangunanSilangDetail as any),
+                                  siphon: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisiSiphon: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            bp?.bangunanSilangDetail?.kondisiSiphon === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1581,35 +1822,49 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.bangunanSilangDetail?.gorongGorong ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              bangunanSilangDetail: {
-                                ...(bp?.bangunanSilangDetail as any),
-                                gorongGorong: parseInt(e.target.value, 10) || 0,
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                bangunanSilangDetail: {
+                                  ...(bp?.bangunanSilangDetail as any),
+                                  gorongGorong: u,
+                                  kondisiGorongGorong: autoKondisiForUnit(u, bp?.bangunanSilangDetail?.kondisiGorongGorong),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
                         <select
-                          value={bp?.bangunanSilangDetail?.kondisiGorongGorong || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              bangunanSilangDetail: {
-                                ...(bp?.bangunanSilangDetail as any),
-                                kondisiGorongGorong: e.target.value as KondisiFisik,
+                          value={bp?.bangunanSilangDetail?.kondisiGorongGorong || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.bangunanSilangDetail?.gorongGorong ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                bangunanSilangDetail: {
+                                  ...(bp?.bangunanSilangDetail as any),
+                                  gorongGorong: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisiGorongGorong: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            bp?.bangunanSilangDetail?.kondisiGorongGorong === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1628,35 +1883,49 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={bp?.bangunanSilangDetail?.gotMiringTerjunan ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              bangunanSilangDetail: {
-                                ...(bp?.bangunanSilangDetail as any),
-                                gotMiringTerjunan: parseInt(e.target.value, 10) || 0,
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                bangunanSilangDetail: {
+                                  ...(bp?.bangunanSilangDetail as any),
+                                  gotMiringTerjunan: u,
+                                  kondisiGotMiringTerjunan: autoKondisiForUnit(u, bp?.bangunanSilangDetail?.kondisiGotMiringTerjunan),
+                                },
                               },
-                            },
-                          })}
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
                         <select
-                          value={bp?.bangunanSilangDetail?.kondisiGotMiringTerjunan || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            bangunanPelengkap: {
-                              ...(bp as any),
-                              bangunanSilangDetail: {
-                                ...(bp?.bangunanSilangDetail as any),
-                                kondisiGotMiringTerjunan: e.target.value as KondisiFisik,
+                          value={bp?.bangunanSilangDetail?.kondisiGotMiringTerjunan || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = bp?.bangunanSilangDetail?.gotMiringTerjunan ?? 0;
+                            setFormData({
+                              ...formData,
+                              bangunanPelengkap: {
+                                ...(bp as any),
+                                bangunanSilangDetail: {
+                                  ...(bp?.bangunanSilangDetail as any),
+                                  gotMiringTerjunan: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                  kondisiGotMiringTerjunan: k,
+                                },
                               },
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            bp?.bangunanSilangDetail?.kondisiGotMiringTerjunan === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1679,7 +1948,7 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
                     1. Saluran Pembawa (Primer, Sekunder, Tersier)
                   </h4>
-                  <span className="text-[10px] text-slate-500 font-medium">Panjang (Meter) & Penilaian Kondisi Fisik</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Jika Panjang = 0 m, Kondisi Otomatis "Tidak Ada"</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1692,13 +1961,17 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={formData.jaringanSaluran?.panjangPrimerM ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              panjangPrimerM: parseInt(e.target.value, 10) || 0,
-                            },
-                          })}
+                          onChange={(e) => {
+                            const p = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                panjangPrimerM: p,
+                                kondisiPrimer: autoKondisiForUnit(p, formData.jaringanSaluran?.kondisiPrimer),
+                              },
+                            });
+                          }}
                           placeholder="Contoh: 3500"
                           className="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
@@ -1706,16 +1979,26 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
                         <select
-                          value={formData.jaringanSaluran?.kondisiPrimer || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              kondisiPrimer: e.target.value as KondisiFisik,
-                            },
-                          })}
-                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          value={formData.jaringanSaluran?.kondisiPrimer || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currP = formData.jaringanSaluran?.panjangPrimerM ?? 0;
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                panjangPrimerM: k === 'Tidak Ada' ? 0 : (currP <= 0 ? 500 : currP),
+                                kondisiPrimer: k,
+                              },
+                            });
+                          }}
+                          className={`w-full px-2.5 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            formData.jaringanSaluran?.kondisiPrimer === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Meter)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1734,13 +2017,17 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={formData.jaringanSaluran?.panjangSekunderM ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              panjangSekunderM: parseInt(e.target.value, 10) || 0,
-                            },
-                          })}
+                          onChange={(e) => {
+                            const p = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                panjangSekunderM: p,
+                                kondisiSekunder: autoKondisiForUnit(p, formData.jaringanSaluran?.kondisiSekunder),
+                              },
+                            });
+                          }}
                           placeholder="Contoh: 5000"
                           className="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
@@ -1748,16 +2035,26 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
                         <select
-                          value={formData.jaringanSaluran?.kondisiSekunder || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              kondisiSekunder: e.target.value as KondisiFisik,
-                            },
-                          })}
-                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          value={formData.jaringanSaluran?.kondisiSekunder || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currP = formData.jaringanSaluran?.panjangSekunderM ?? 0;
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                panjangSekunderM: k === 'Tidak Ada' ? 0 : (currP <= 0 ? 500 : currP),
+                                kondisiSekunder: k,
+                              },
+                            });
+                          }}
+                          className={`w-full px-2.5 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            formData.jaringanSaluran?.kondisiSekunder === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Meter)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1776,13 +2073,17 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={formData.jaringanSaluran?.panjangTersierM ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              panjangTersierM: parseInt(e.target.value, 10) || 0,
-                            },
-                          })}
+                          onChange={(e) => {
+                            const p = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                panjangTersierM: p,
+                                kondisiTersier: autoKondisiForUnit(p, formData.jaringanSaluran?.kondisiTersier),
+                              },
+                            });
+                          }}
                           placeholder="Contoh: 8000"
                           className="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
@@ -1790,16 +2091,26 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
                         <select
-                          value={formData.jaringanSaluran?.kondisiTersier || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              kondisiTersier: e.target.value as KondisiFisik,
-                            },
-                          })}
-                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          value={formData.jaringanSaluran?.kondisiTersier || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currP = formData.jaringanSaluran?.panjangTersierM ?? 0;
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                panjangTersierM: k === 'Tidak Ada' ? 0 : (currP <= 0 ? 500 : currP),
+                                kondisiTersier: k,
+                              },
+                            });
+                          }}
+                          className={`w-full px-2.5 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            formData.jaringanSaluran?.kondisiTersier === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Meter)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1817,7 +2128,7 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
                     2. Bangunan Pengatur, Pembagi & Silang Saluran
                   </h4>
-                  <span className="text-[10px] text-slate-500 font-medium">Jumlah Unit & Penilaian Kondisi Fisik</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Jika Unit = 0, Kondisi Otomatis "Tidak Ada"</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -1830,29 +2141,43 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={formData.jaringanSaluran?.jumlahBangunanBagi ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              jumlahBangunanBagi: parseInt(e.target.value, 10) || 0,
-                            },
-                          })}
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                jumlahBangunanBagi: u,
+                                kondisiBangunanBagi: autoKondisiForUnit(u, formData.jaringanSaluran?.kondisiBangunanBagi),
+                              },
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={formData.jaringanSaluran?.kondisiBangunanBagi || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              kondisiBangunanBagi: e.target.value as KondisiFisik,
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          value={formData.jaringanSaluran?.kondisiBangunanBagi || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = formData.jaringanSaluran?.jumlahBangunanBagi ?? 0;
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                jumlahBangunanBagi: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                kondisiBangunanBagi: k,
+                              },
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            formData.jaringanSaluran?.kondisiBangunanBagi === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1871,29 +2196,43 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={formData.jaringanSaluran?.jumlahBangunanSadap ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              jumlahBangunanSadap: parseInt(e.target.value, 10) || 0,
-                            },
-                          })}
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                jumlahBangunanSadap: u,
+                                kondisiBangunanSadap: autoKondisiForUnit(u, formData.jaringanSaluran?.kondisiBangunanSadap),
+                              },
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={formData.jaringanSaluran?.kondisiBangunanSadap || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              kondisiBangunanSadap: e.target.value as KondisiFisik,
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          value={formData.jaringanSaluran?.kondisiBangunanSadap || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = formData.jaringanSaluran?.jumlahBangunanSadap ?? 0;
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                jumlahBangunanSadap: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                kondisiBangunanSadap: k,
+                              },
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            formData.jaringanSaluran?.kondisiBangunanSadap === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1912,29 +2251,43 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={formData.jaringanSaluran?.jumlahBangunanBagiSadap ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              jumlahBangunanBagiSadap: parseInt(e.target.value, 10) || 0,
-                            },
-                          })}
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                jumlahBangunanBagiSadap: u,
+                                kondisiBangunanBagiSadap: autoKondisiForUnit(u, formData.jaringanSaluran?.kondisiBangunanBagiSadap),
+                              },
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={formData.jaringanSaluran?.kondisiBangunanBagiSadap || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              kondisiBangunanBagiSadap: e.target.value as KondisiFisik,
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          value={formData.jaringanSaluran?.kondisiBangunanBagiSadap || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = formData.jaringanSaluran?.jumlahBangunanBagiSadap ?? 0;
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                jumlahBangunanBagiSadap: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                kondisiBangunanBagiSadap: k,
+                              },
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            formData.jaringanSaluran?.kondisiBangunanBagiSadap === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1953,29 +2306,43 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={formData.jaringanSaluran?.jumlahGorongGorong ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              jumlahGorongGorong: parseInt(e.target.value, 10) || 0,
-                            },
-                          })}
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                jumlahGorongGorong: u,
+                                kondisiGorongGorong: autoKondisiForUnit(u, formData.jaringanSaluran?.kondisiGorongGorong),
+                              },
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={formData.jaringanSaluran?.kondisiGorongGorong || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              kondisiGorongGorong: e.target.value as KondisiFisik,
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          value={formData.jaringanSaluran?.kondisiGorongGorong || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = formData.jaringanSaluran?.jumlahGorongGorong ?? 0;
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                jumlahGorongGorong: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                kondisiGorongGorong: k,
+                              },
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            formData.jaringanSaluran?.kondisiGorongGorong === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>
@@ -1994,29 +2361,43 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                         <input
                           type="number"
                           value={formData.jaringanSaluran?.jumlahTalangSiphon ?? 0}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              jumlahTalangSiphon: parseInt(e.target.value, 10) || 0,
-                            },
-                          })}
+                          onChange={(e) => {
+                            const u = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                jumlahTalangSiphon: u,
+                                kondisiTalangSiphon: autoKondisiForUnit(u, formData.jaringanSaluran?.kondisiTalangSiphon),
+                              },
+                            });
+                          }}
                           className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
                         <select
-                          value={formData.jaringanSaluran?.kondisiTalangSiphon || 'Baik'}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            jaringanSaluran: {
-                              ...(formData.jaringanSaluran as any),
-                              kondisiTalangSiphon: e.target.value as KondisiFisik,
-                            },
-                          })}
-                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          value={formData.jaringanSaluran?.kondisiTalangSiphon || 'Tidak Ada'}
+                          onChange={(e) => {
+                            const k = e.target.value as KondisiFisik;
+                            const currU = formData.jaringanSaluran?.jumlahTalangSiphon ?? 0;
+                            setFormData({
+                              ...formData,
+                              jaringanSaluran: {
+                                ...(formData.jaringanSaluran as any),
+                                jumlahTalangSiphon: k === 'Tidak Ada' ? 0 : (currU <= 0 ? 1 : currU),
+                                kondisiTalangSiphon: k,
+                              },
+                            });
+                          }}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 border ${
+                            formData.jaringanSaluran?.kondisiTalangSiphon === 'Tidak Ada'
+                              ? 'bg-slate-100 text-slate-500 border-slate-200 italic'
+                              : 'bg-slate-50 border-slate-300 text-slate-900'
+                          }`}
                         >
+                          <option value="Tidak Ada">Tidak Ada (0 Unit)</option>
                           <option value="Baik">Baik</option>
                           <option value="Rusak Ringan">Rusak Ringan</option>
                           <option value="Rusak Sedang">Rusak Sedang</option>

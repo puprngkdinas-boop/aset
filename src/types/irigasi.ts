@@ -9,7 +9,7 @@ export type KecamatanNagekeo =
 
 export type KewenanganDI = 'Pusat' | 'Provinsi' | 'Kabupaten';
 export type JenisIrigasi = 'Permukaan' | 'Rawa' | 'Air Tanah' | 'Pompa';
-export type KondisiFisik = 'Baik' | 'Rusak Ringan' | 'Rusak Sedang' | 'Rusak Berat';
+export type KondisiFisik = 'Baik' | 'Rusak Ringan' | 'Rusak Sedang' | 'Rusak Berat' | 'Tidak Ada';
 export type KategoriIKSI = 'Sangat Baik' | 'Baik' | 'Kurang' | 'Jelek';
 export type KeaktifanIuran = 'Aktif' | 'Kurang Aktif' | 'Tidak Aktif';
 export type KategoriUsulan = 'O&P Rutin' | 'O&P Berkala' | 'Rehabilitasi Jaringan' | 'Peningkatan Jaringan';

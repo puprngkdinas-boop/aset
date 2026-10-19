@@ -474,7 +474,7 @@ export const INITIAL_DAERAH_IRIGASI: DaerahIrigasi[] = [
       trashrackSaringanSampah: { jumlahUnit: 1, kondisi: 'Rusak Berat' },
       peilschaalSaluran: { jumlahUnit: 2, kondisi: 'Rusak Sedang' },
       patokHektometerSempadan: { jumlahUnit: 18, kondisi: 'Rusak Berat' },
-      garduJagaRumahPintu: { jumlahUnit: 0, kondisi: 'Rusak Berat' },
+      garduJagaRumahPintu: { jumlahUnit: 0, kondisi: 'Tidak Ada' },
       jalanInspeksi: {
         panjangKm: 5.2,
         lebarM: 2.5,
