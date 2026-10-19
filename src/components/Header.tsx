@@ -23,6 +23,9 @@ interface HeaderProps {
   onOpenPrintView: () => void;
   totalDI: number;
   totalLuasFungsional: number;
+  isAdmin: boolean;
+  onOpenAdminLogin: () => void;
+  onLogoutAdmin: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -34,6 +37,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPrintView,
   totalDI,
   totalLuasFungsional,
+  isAdmin,
+  onOpenAdminLogin,
+  onLogoutAdmin,
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-slate-900 border-b border-slate-800 text-white shadow-md no-print">
@@ -102,25 +108,48 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden sm:inline">Data / CSV</span>
             </button>
 
-            <button
-              type="button"
-              onClick={onOpenGoogleSheetModal}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-300 bg-emerald-950/60 hover:bg-emerald-900/80 hover:text-white rounded-md border border-emerald-700/60 transition-colors"
-              title="Integrasi Google Sheets & Webhook Dua Arah Otomatis"
-            >
-              <Table className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden sm:inline">Google Sheet</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" title="Webhook Realtime Aktif" />
-            </button>
+            {isAdmin ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onOpenGoogleSheetModal}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-300 bg-emerald-950/60 hover:bg-emerald-900/80 hover:text-white rounded-md border border-emerald-700/60 transition-colors"
+                  title="Integrasi Google Sheets & Webhook Dua Arah Otomatis"
+                >
+                  <Table className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="hidden sm:inline">Google Sheet</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" title="Webhook Realtime Aktif" />
+                </button>
 
-            <button
-              type="button"
-              onClick={onOpenAddModal}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-md transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Tambah DI</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={onOpenAddModal}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-md transition-colors shadow-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah DI</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onLogoutAdmin}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-amber-300 bg-amber-950/60 hover:bg-amber-900/80 rounded-md border border-amber-600/50 transition-colors"
+                  title="Keluar dari sesi Admin Dinas"
+                >
+                  <span>🔒 Admin PUPR</span>
+                  <span className="text-[10px] text-amber-400 underline ml-1">Keluar</span>
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenAdminLogin}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 rounded-md transition-colors shadow-md cursor-pointer"
+                title="Login khusus Administrator Dinas PUPR untuk Kelola Data & Publikasi"
+              >
+                <span>🔐 Login Admin</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

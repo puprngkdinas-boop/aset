@@ -27,6 +27,8 @@ import { getDaftarDesa } from '../data/wilayahNagekeo';
 
 interface IrrigationListProps {
   data: DaerahIrigasi[];
+  allDataCount?: number;
+  isAdmin?: boolean;
   onSelectDI: (di: DaerahIrigasi) => void;
   onEditDI: (di: DaerahIrigasi) => void;
   onDeleteDI: (id: string, nama: string) => void;
@@ -40,6 +42,8 @@ type SortOrder = 'asc' | 'desc';
 
 export const IrrigationList: React.FC<IrrigationListProps> = ({
   data,
+  allDataCount,
+  isAdmin,
   onSelectDI,
   onEditDI,
   onDeleteDI,
@@ -378,11 +382,22 @@ export const IrrigationList: React.FC<IrrigationListProps> = ({
                   >
                     {/* Nama & Kode */}
                     <td className="py-3 px-4">
-                      <div
-                        onClick={() => onSelectDI(di)}
-                        className="cursor-pointer font-bold text-slate-900 group-hover:text-amber-700 transition-colors"
-                      >
-                        {di.nama}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div
+                          onClick={() => onSelectDI(di)}
+                          className="cursor-pointer font-bold text-slate-900 group-hover:text-amber-700 transition-colors"
+                        >
+                          {di.nama}
+                        </div>
+                        {isAdmin && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${
+                            di.isPublished !== false 
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                              : 'bg-amber-50 text-amber-800 border border-amber-200'
+                          }`}>
+                            {di.isPublished !== false ? '🌐 Publik' : '🔒 Khusus Admin'}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] text-slate-500 font-mono flex items-center gap-1.5 mt-0.5">
                         <span>{di.kodeDI}</span>

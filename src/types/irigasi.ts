@@ -173,6 +173,7 @@ export interface DaerahIrigasi {
   usulanPenanganan: UsulanPenanganan;
   galeriFoto: FotoDokumentasi[];
   catatanOp?: string;
+  isPublished?: boolean; // true = Publik (Tampil untuk Umum), false = Khusus Admin (Internal Dinas)
   updatedAt: string;
 }
 

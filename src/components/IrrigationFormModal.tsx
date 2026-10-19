@@ -489,6 +489,7 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
       },
       galeriFoto: formData.galeriFoto || [],
       catatanOp: formData.catatanOp,
+      isPublished: formData.isPublished ?? true,
       updatedAt: new Date().toISOString().slice(0, 10),
     };
 
@@ -2715,6 +2716,35 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                   placeholder="Catatan debit air saat musim tanam, kendala endapan..."
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                 />
+              </div>
+
+              <div className="bg-amber-50/60 border border-amber-200 p-3.5 rounded-xl space-y-2 mt-3">
+                <label className="block text-xs font-bold text-slate-900">
+                  Status Publikasi &amp; Akses Data Irigasi
+                </label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="isPublished"
+                      checked={formData.isPublished ?? true}
+                      onChange={() => setFormData({ ...formData, isPublished: true })}
+                      className="text-amber-500"
+                    />
+                    <span>🌐 <strong>Publik</strong> (Tampil untuk Umum &amp; Laporan Dinas)</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="isPublished"
+                      checked={formData.isPublished === false}
+                      onChange={() => setFormData({ ...formData, isPublished: false })}
+                      className="text-amber-500"
+                    />
+                    <span>🔒 <strong>Data Khusus Admin</strong> (Internal Dinas / Draft)</span>
+                  </label>
+                </div>
               </div>
             </div>
           )}

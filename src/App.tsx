@@ -10,6 +10,7 @@ import { IrrigationFormModal } from './components/IrrigationFormModal';
 import { IksiCalculatorModal } from './components/IksiCalculatorModal';
 import { DataExportImportModal } from './components/DataExportImportModal';
 import { GoogleSheetSyncModal } from './components/GoogleSheetSyncModal';
+import { AdminLoginModal } from './components/AdminLoginModal';
 import { PrintReportView } from './components/PrintReportView';
 import { ToastContainer, ToastMessage } from './components/Toast';
 import { googleSheetService } from './services/googleSheetService';
@@ -18,6 +19,12 @@ export default function App() {
   const [data, setData] = useState<DaerahIrigasi[]>([]);
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   
+  // Admin authentication state
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    return localStorage.getItem('si_irigasi_admin_logged') === 'true';
+  });
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+
   // Modals state
   const [selectedDI, setSelectedDI] = useState<DaerahIrigasi | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -55,19 +62,45 @@ export default function App() {
     setData(loaded);
   }, []);
 
-  // Compute top bar quick stats
-  const totalDI = data.length;
-  const totalLuasFungsional = data.reduce((acc, curr) => acc + (curr.luasFungsional || 0), 0);
+  // Filtered data for public view vs admin view
+  // If not admin, only show items where isPublished is true (or undefined)
+  const displayData = isAdmin ? data : data.filter((d) => d.isPublished !== false);
+
+  // Compute stats based on displayData (or total)
+  const totalDI = displayData.length;
+  const totalLuasFungsional = displayData.reduce((acc, curr) => acc + (curr.luasFungsional || 0), 0);
 
   // Handlers
   const handleOpenAddModal = () => {
+    if (!isAdmin) {
+      setIsAdminLoginOpen(true);
+      showToast('Akses dibatasi: Silakan login sebagai Admin Dinas terlebih dahulu untuk menambah data.', 'warning', 5000);
+      return;
+    }
     setEditingDI(null);
     setIsFormOpen(true);
   };
 
   const handleEditDI = (di: DaerahIrigasi) => {
+    if (!isAdmin) {
+      setIsAdminLoginOpen(true);
+      showToast('Akses dibatasi: Silakan login sebagai Admin Dinas untuk mengubah data.', 'warning', 5000);
+      return;
+    }
     setEditingDI(di);
     setIsFormOpen(true);
+  };
+
+  const handleLoginSuccess = () => {
+    setIsAdmin(true);
+    localStorage.setItem('si_irigasi_admin_logged', 'true');
+    showToast('✓ Berhasil masuk sebagai Administrator Dinas PUPR Kab. Nagekeo!', 'success', 5000);
+  };
+
+  const handleLogoutAdmin = () => {
+    setIsAdmin(false);
+    localStorage.removeItem('si_irigasi_admin_logged');
+    showToast('Keluar dari sesi Admin Dinas. Sistem kembali ke mode Publik.', 'info', 4000);
   };
 
   // Realtime two-way save: immediately stores locally AND posts to Google Sheet webhook
@@ -115,6 +148,12 @@ export default function App() {
 
   // Realtime two-way delete: deletes locally AND deletes the exact row in Google Sheet
   const handleDeleteDI = async (id: string, nama: string) => {
+    if (!isAdmin) {
+      setIsAdminLoginOpen(true);
+      showToast('Akses dibatasi: Silakan login sebagai Admin Dinas untuk menghapus data.', 'warning', 5000);
+      return;
+    }
+
     const targetDI = data.find((d) => d.id === id);
     const kode = targetDI?.kodeDI || '';
 
@@ -185,7 +224,7 @@ export default function App() {
   if (isPrintView) {
     return (
       <PrintReportView
-        data={data}
+        data={displayData}
         singleDI={singlePrintDI}
         onBack={() => {
           setIsPrintView(false);
@@ -210,17 +249,41 @@ export default function App() {
         }}
         onOpenAddModal={handleOpenAddModal}
         onOpenExportModal={() => setIsExportOpen(true)}
-        onOpenGoogleSheetModal={() => setIsGoogleSheetOpen(true)}
+        onOpenGoogleSheetModal={() => {
+          if (!isAdmin) {
+            setIsAdminLoginOpen(true);
+            showToast('Login Admin diperlukan untuk mengakses panel Google Sheets & Webhook.', 'warning', 4000);
+            return;
+          }
+          setIsGoogleSheetOpen(true);
+        }}
         onOpenPrintView={handlePrintAll}
         totalDI={totalDI}
         totalLuasFungsional={totalLuasFungsional}
+        isAdmin={isAdmin}
+        onOpenAdminLogin={() => setIsAdminLoginOpen(true)}
+        onLogoutAdmin={handleLogoutAdmin}
       />
+
+      {/* Admin Notice Banner if logged in */}
+      {isAdmin && (
+        <div className="bg-amber-500 text-slate-950 px-4 py-1.5 text-xs font-bold text-center flex items-center justify-center gap-2 shadow-inner no-print">
+          <span>👑 MODE ADMINISTRATOR DINAS AKTIF: Anda dapat menambah, mengubah, menghapus data, dan mengatur status publikasi (Publik / Khusus Admin).</span>
+          <button
+            type="button"
+            onClick={handleLogoutAdmin}
+            className="bg-slate-950 text-amber-300 px-2 py-0.5 rounded text-[10px] hover:bg-slate-900 transition-colors ml-2"
+          >
+            Keluar Mode Admin
+          </button>
+        </div>
+      )}
 
       {/* Main Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'dashboard' && (
           <DashboardOverview
-            data={data}
+            data={displayData}
             onSelectDI={handleSelectDI}
             onOpenAddModal={handleOpenAddModal}
             onViewAllTable={() => setActiveTab('database')}
@@ -230,7 +293,9 @@ export default function App() {
 
         {activeTab === 'database' && (
           <IrrigationList
-            data={data}
+            data={displayData}
+            allDataCount={data.length}
+            isAdmin={isAdmin}
             onSelectDI={handleSelectDI}
             onEditDI={handleEditDI}
             onDeleteDI={handleDeleteDI}
@@ -242,7 +307,7 @@ export default function App() {
 
         {activeTab === 'map' && (
           <InteractiveMap
-            data={data}
+            data={displayData}
             onSelectDI={handleSelectDI}
           />
         )}
@@ -276,11 +341,23 @@ export default function App() {
           setSelectedDI(null);
         }}
         onEdit={(di) => {
+          if (!isAdmin) {
+            setIsAdminLoginOpen(true);
+            showToast('Login Admin diperlukan untuk mengedit data ini.', 'warning', 4000);
+            return;
+          }
           setIsDetailOpen(false);
           handleEditDI(di);
         }}
         onPrintSingle={handlePrintSingle}
-        onDelete={handleDeleteDI}
+        onDelete={(id, nama) => {
+          if (!isAdmin) {
+            setIsAdminLoginOpen(true);
+            showToast('Login Admin diperlukan untuk menghapus data ini.', 'warning', 4000);
+            return;
+          }
+          handleDeleteDI(id, nama);
+        }}
       />
 
       <IrrigationFormModal
@@ -309,6 +386,12 @@ export default function App() {
         onClose={() => setIsGoogleSheetOpen(false)}
         data={data}
         onDataUpdated={(newData) => setData(newData)}
+      />
+
+      <AdminLoginModal
+        isOpen={isAdminLoginOpen}
+        onClose={() => setIsAdminLoginOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
       />
 
       {/* Realtime Toast Notifications for Two-Way Google Sheet Sync and Actions */}
