@@ -200,9 +200,13 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
           },
           bangunanSilangDetail: {
             talang: 1,
+            kondisiTalang: 'Baik',
             siphon: 0,
+            kondisiSiphon: 'Baik',
             gorongGorong: 6,
+            kondisiGorongGorong: 'Baik',
             gotMiringTerjunan: 2,
+            kondisiGotMiringTerjunan: 'Baik',
           },
         },
         jaringanSaluran: {
@@ -213,10 +217,15 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
           panjangTersierM: 5000,
           kondisiTersier: 'Rusak Ringan',
           jumlahBangunanBagi: 2,
+          kondisiBangunanBagi: 'Baik',
           jumlahBangunanSadap: 4,
+          kondisiBangunanSadap: 'Baik',
           jumlahBangunanBagiSadap: 2,
+          kondisiBangunanBagiSadap: 'Baik',
           jumlahTalangSiphon: 1,
+          kondisiTalangSiphon: 'Baik',
           jumlahGorongGorong: 5,
+          kondisiGorongGorong: 'Baik',
         },
         dataP3A: {
           namaP3A: '',
@@ -969,291 +978,1053 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
 
           {/* SECTION 3: BANGUNAN PELENGKAP */}
           {formSection === 'bangunan-pelengkap' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Jembatan Desa / Tani (Unit)</label>
-                  <input
-                    type="number"
-                    value={bp?.jembatanDesaTani?.jumlahUnit ?? 2}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      bangunanPelengkap: {
-                        ...(bp as any),
-                        jembatanDesaTani: {
-                          jumlahUnit: parseInt(e.target.value, 10) || 0,
-                          kondisi: bp?.jembatanDesaTani?.kondisi || 'Baik',
-                        },
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+            <div className="space-y-5">
+              {/* Grup 1: Fasilitas Sosial & Pertanian */}
+              <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    1. Fasilitas Pelengkap Sosial & Pertanian
+                  </h4>
+                  <span className="text-[10px] text-slate-500 font-medium">Jumlah Unit & Penilaian Kondisi</span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Kubangan Cuci Ternak (Unit)</label>
-                  <input
-                    type="number"
-                    value={bp?.kubanganCuciTernak?.jumlahUnit ?? 1}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      bangunanPelengkap: {
-                        ...(bp as any),
-                        kubanganCuciTernak: {
-                          jumlahUnit: parseInt(e.target.value, 10) || 0,
-                          kondisi: bp?.kubanganCuciTernak?.kondisi || 'Baik',
-                        },
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {/* Jembatan Desa / Tani */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Jembatan Desa / Tani</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.jembatanDesaTani?.jumlahUnit ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              jembatanDesaTani: {
+                                jumlahUnit: parseInt(e.target.value, 10) || 0,
+                                kondisi: bp?.jembatanDesaTani?.kondisi || 'Baik',
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={bp?.jembatanDesaTani?.kondisi || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              jembatanDesaTani: {
+                                jumlahUnit: bp?.jembatanDesaTani?.jumlahUnit ?? 0,
+                                kondisi: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tangga Cuci Petani (Unit)</label>
-                  <input
-                    type="number"
-                    value={bp?.tanggaCuciMandiPetani?.jumlahUnit ?? 3}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      bangunanPelengkap: {
-                        ...(bp as any),
-                        tanggaCuciMandiPetani: {
-                          jumlahUnit: parseInt(e.target.value, 10) || 0,
-                          kondisi: bp?.tanggaCuciMandiPetani?.kondisi || 'Baik',
-                        },
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+                  {/* Kubangan Cuci Ternak */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Kubangan Cuci Ternak</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.kubanganCuciTernak?.jumlahUnit ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              kubanganCuciTernak: {
+                                jumlahUnit: parseInt(e.target.value, 10) || 0,
+                                kondisi: bp?.kubanganCuciTernak?.kondisi || 'Baik',
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={bp?.kubanganCuciTernak?.kondisi || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              kubanganCuciTernak: {
+                                jumlahUnit: bp?.kubanganCuciTernak?.jumlahUnit ?? 0,
+                                kondisi: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tangga Cuci Petani */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Tangga Cuci Petani</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.tanggaCuciMandiPetani?.jumlahUnit ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              tanggaCuciMandiPetani: {
+                                jumlahUnit: parseInt(e.target.value, 10) || 0,
+                                kondisi: bp?.tanggaCuciMandiPetani?.kondisi || 'Baik',
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={bp?.tanggaCuciMandiPetani?.kondisi || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              tanggaCuciMandiPetani: {
+                                jumlahUnit: bp?.tanggaCuciMandiPetani?.jumlahUnit ?? 0,
+                                kondisi: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pelimpah Samping Wasteweir */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Pelimpah Samping (Wasteweir)</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.pelimpahSampingWasteweir?.jumlahUnit ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              pelimpahSampingWasteweir: {
+                                jumlahUnit: parseInt(e.target.value, 10) || 0,
+                                kondisi: bp?.pelimpahSampingWasteweir?.kondisi || 'Baik',
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={bp?.pelimpahSampingWasteweir?.kondisi || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              pelimpahSampingWasteweir: {
+                                jumlahUnit: bp?.pelimpahSampingWasteweir?.jumlahUnit ?? 0,
+                                kondisi: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Kisi Saringan Sampah Trashrack */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Saringan Sampah (Trashrack)</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.trashrackSaringanSampah?.jumlahUnit ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              trashrackSaringanSampah: {
+                                jumlahUnit: parseInt(e.target.value, 10) || 0,
+                                kondisi: bp?.trashrackSaringanSampah?.kondisi || 'Baik',
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={bp?.trashrackSaringanSampah?.kondisi || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              trashrackSaringanSampah: {
+                                jumlahUnit: bp?.trashrackSaringanSampah?.jumlahUnit ?? 0,
+                                kondisi: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Pelimpah Samping Wasteweir (Unit)</label>
-                  <input
-                    type="number"
-                    value={bp?.pelimpahSampingWasteweir?.jumlahUnit ?? 1}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      bangunanPelengkap: {
-                        ...(bp as any),
-                        pelimpahSampingWasteweir: {
-                          jumlahUnit: parseInt(e.target.value, 10) || 0,
-                          kondisi: bp?.pelimpahSampingWasteweir?.kondisi || 'Baik',
-                        },
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+              {/* Grup 2: Prasarana O&P, Patok Sempadan & Jalan Inspeksi */}
+              <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    2. Prasarana O&P, Patok Sempadan & Jalan Inspeksi
+                  </h4>
+                  <span className="text-[10px] text-slate-500 font-medium">Inventarisasi & Penilaian Kondisi</span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Saringan Sampah Trashrack (Unit)</label>
-                  <input
-                    type="number"
-                    value={bp?.trashrackSaringanSampah?.jumlahUnit ?? 1}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      bangunanPelengkap: {
-                        ...(bp as any),
-                        trashrackSaringanSampah: {
-                          jumlahUnit: parseInt(e.target.value, 10) || 0,
-                          kondisi: bp?.trashrackSaringanSampah?.kondisi || 'Baik',
-                        },
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* Gardu Jaga / Pos Juru POB */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Gardu Jaga / Pos POB</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.garduJagaRumahPintu?.jumlahUnit ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              garduJagaRumahPintu: {
+                                jumlahUnit: parseInt(e.target.value, 10) || 0,
+                                kondisi: bp?.garduJagaRumahPintu?.kondisi || 'Baik',
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={bp?.garduJagaRumahPintu?.kondisi || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              garduJagaRumahPintu: {
+                                jumlahUnit: bp?.garduJagaRumahPintu?.jumlahUnit ?? 0,
+                                kondisi: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Papan Duga Air (Peilschaal) */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Papan Duga Air (Peilschaal)</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.peilschaalSaluran?.jumlahUnit ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              peilschaalSaluran: {
+                                jumlahUnit: parseInt(e.target.value, 10) || 0,
+                                kondisi: bp?.peilschaalSaluran?.kondisi || 'Baik',
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={bp?.peilschaalSaluran?.kondisi || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              peilschaalSaluran: {
+                                jumlahUnit: bp?.peilschaalSaluran?.jumlahUnit ?? 0,
+                                kondisi: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Patok Hm & Sempadan */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Patok Hektometer (Hm)</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Patok</label>
+                        <input
+                          type="number"
+                          value={bp?.patokHektometerSempadan?.jumlahUnit ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              patokHektometerSempadan: {
+                                jumlahUnit: parseInt(e.target.value, 10) || 0,
+                                kondisi: bp?.patokHektometerSempadan?.kondisi || 'Baik',
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={bp?.patokHektometerSempadan?.kondisi || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              patokHektometerSempadan: {
+                                jumlahUnit: bp?.patokHektometerSempadan?.jumlahUnit ?? 0,
+                                kondisi: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Gardu Jaga / Pos POB (Unit)</label>
-                  <input
-                    type="number"
-                    value={bp?.garduJagaRumahPintu?.jumlahUnit ?? 1}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      bangunanPelengkap: {
-                        ...(bp as any),
-                        garduJagaRumahPintu: {
-                          jumlahUnit: parseInt(e.target.value, 10) || 0,
-                          kondisi: bp?.garduJagaRumahPintu?.kondisi || 'Baik',
-                        },
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+                {/* Jalan Inspeksi Lengkap */}
+                <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2 mt-2">
+                  <span className="text-xs font-bold text-slate-800 block">Jalan Inspeksi Saluran Irigasi</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Panjang (Km)</label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={bp?.jalanInspeksi?.panjangKm ?? 0}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          bangunanPelengkap: {
+                            ...(bp as any),
+                            jalanInspeksi: {
+                              ...(bp?.jalanInspeksi as any),
+                              panjangKm: parseFloat(e.target.value) || 0,
+                            },
+                          },
+                        })}
+                        className="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Lebar (Meter)</label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={bp?.jalanInspeksi?.lebarM ?? 3.0}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          bangunanPelengkap: {
+                            ...(bp as any),
+                            jalanInspeksi: {
+                              ...(bp?.jalanInspeksi as any),
+                              lebarM: parseFloat(e.target.value) || 0,
+                            },
+                          },
+                        })}
+                        className="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jenis Perkerasan</label>
+                      <select
+                        value={bp?.jalanInspeksi?.jenisPerkerasan || 'Rabat Beton'}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          bangunanPelengkap: {
+                            ...(bp as any),
+                            jalanInspeksi: {
+                              ...(bp?.jalanInspeksi as any),
+                              jenisPerkerasan: e.target.value as any,
+                            },
+                          },
+                        })}
+                        className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      >
+                        <option value="Rabat Beton">Rabat Beton</option>
+                        <option value="Aspal">Aspal</option>
+                        <option value="Sirtu/Krikil">Sirtu/Krikil</option>
+                        <option value="Tanah">Tanah</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
+                      <select
+                        value={bp?.jalanInspeksi?.kondisi || 'Baik'}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          bangunanPelengkap: {
+                            ...(bp as any),
+                            jalanInspeksi: {
+                              ...(bp?.jalanInspeksi as any),
+                              kondisi: e.target.value as KondisiFisik,
+                            },
+                          },
+                        })}
+                        className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      >
+                        <option value="Baik">Baik</option>
+                        <option value="Rusak Ringan">Rusak Ringan</option>
+                        <option value="Rusak Sedang">Rusak Sedang</option>
+                        <option value="Rusak Berat">Rusak Berat</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Panjang Jalan Inspeksi (Km)</label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={bp?.jalanInspeksi?.panjangKm ?? 2.5}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      bangunanPelengkap: {
-                        ...(bp as any),
-                        jalanInspeksi: {
-                          ...(bp?.jalanInspeksi as any),
-                          panjangKm: parseFloat(e.target.value) || 0,
-                        },
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+              {/* Grup 3: Bangunan Silang Detail (Cross Structures) */}
+              <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    3. Bangunan Silang Saluran (Cross Structures)
+                  </h4>
+                  <span className="text-[10px] text-slate-500 font-medium">Jumlah Unit & Penilaian Kondisi</span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Jenis Perkerasan Jalan</label>
-                  <select
-                    value={bp?.jalanInspeksi?.jenisPerkerasan || 'Rabat Beton'}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      bangunanPelengkap: {
-                        ...(bp as any),
-                        jalanInspeksi: {
-                          ...(bp?.jalanInspeksi as any),
-                          jenisPerkerasan: e.target.value as any,
-                        },
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  >
-                    <option value="Rabat Beton">Rabat Beton</option>
-                    <option value="Aspal">Aspal</option>
-                    <option value="Sirtu/Krikil">Sirtu/Krikil</option>
-                    <option value="Tanah">Tanah</option>
-                  </select>
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {/* Talang Air */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Talang Air (Aqueduct)</span>
+                    <div className="space-y-1.5">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.bangunanSilangDetail?.talang ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              bangunanSilangDetail: {
+                                ...(bp?.bangunanSilangDetail as any),
+                                talang: parseInt(e.target.value, 10) || 0,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
+                        <select
+                          value={bp?.bangunanSilangDetail?.kondisiTalang || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              bangunanSilangDetail: {
+                                ...(bp?.bangunanSilangDetail as any),
+                                kondisiTalang: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Patok Hektometer / Sempadan</label>
-                  <input
-                    type="number"
-                    value={bp?.patokHektometerSempadan?.jumlahUnit ?? 25}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      bangunanPelengkap: {
-                        ...(bp as any),
-                        patokHektometerSempadan: {
-                          jumlahUnit: parseInt(e.target.value, 10) || 0,
-                          kondisi: bp?.patokHektometerSempadan?.kondisi || 'Baik',
-                        },
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+                  {/* Siphon */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Siphon (Inverted Siphon)</span>
+                    <div className="space-y-1.5">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.bangunanSilangDetail?.siphon ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              bangunanSilangDetail: {
+                                ...(bp?.bangunanSilangDetail as any),
+                                siphon: parseInt(e.target.value, 10) || 0,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
+                        <select
+                          value={bp?.bangunanSilangDetail?.kondisiSiphon || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              bangunanSilangDetail: {
+                                ...(bp?.bangunanSilangDetail as any),
+                                kondisiSiphon: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gorong-gorong Silang */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Gorong-gorong Pembawa</span>
+                    <div className="space-y-1.5">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.bangunanSilangDetail?.gorongGorong ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              bangunanSilangDetail: {
+                                ...(bp?.bangunanSilangDetail as any),
+                                gorongGorong: parseInt(e.target.value, 10) || 0,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
+                        <select
+                          value={bp?.bangunanSilangDetail?.kondisiGorongGorong || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              bangunanSilangDetail: {
+                                ...(bp?.bangunanSilangDetail as any),
+                                kondisiGorongGorong: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Terjunan / Got Miring */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Terjunan / Got Miring</span>
+                    <div className="space-y-1.5">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={bp?.bangunanSilangDetail?.gotMiringTerjunan ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              bangunanSilangDetail: {
+                                ...(bp?.bangunanSilangDetail as any),
+                                gotMiringTerjunan: parseInt(e.target.value, 10) || 0,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
+                        <select
+                          value={bp?.bangunanSilangDetail?.kondisiGotMiringTerjunan || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            bangunanPelengkap: {
+                              ...(bp as any),
+                              bangunanSilangDetail: {
+                                ...(bp?.bangunanSilangDetail as any),
+                                kondisiGotMiringTerjunan: e.target.value as KondisiFisik,
+                              },
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* SECTION 4: SALURAN */}
+          {/* SECTION 4: SALURAN & BANGUNAN PENGATUR */}
           {formSection === 'saluran' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Saluran Primer (m)</label>
-                  <input
-                    type="number"
-                    value={formData.jaringanSaluran?.panjangPrimerM ?? 0}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      jaringanSaluran: {
-                        ...(formData.jaringanSaluran as any),
-                        panjangPrimerM: parseInt(e.target.value, 10) || 0,
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+            <div className="space-y-5">
+              {/* Bagian 1: Saluran Pembawa (Primer, Sekunder, Tersier) */}
+              <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    1. Saluran Pembawa (Primer, Sekunder, Tersier)
+                  </h4>
+                  <span className="text-[10px] text-slate-500 font-medium">Panjang (Meter) & Penilaian Kondisi Fisik</span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Saluran Sekunder (m)</label>
-                  <input
-                    type="number"
-                    value={formData.jaringanSaluran?.panjangSekunderM ?? 0}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      jaringanSaluran: {
-                        ...(formData.jaringanSaluran as any),
-                        panjangSekunderM: parseInt(e.target.value, 10) || 0,
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* Saluran Primer */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Saluran Primer</span>
+                    <div className="space-y-1.5">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Panjang (Meter)</label>
+                        <input
+                          type="number"
+                          value={formData.jaringanSaluran?.panjangPrimerM ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              panjangPrimerM: parseInt(e.target.value, 10) || 0,
+                            },
+                          })}
+                          placeholder="Contoh: 3500"
+                          className="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
+                        <select
+                          value={formData.jaringanSaluran?.kondisiPrimer || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              kondisiPrimer: e.target.value as KondisiFisik,
+                            },
+                          })}
+                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Saluran Tersier (m)</label>
-                  <input
-                    type="number"
-                    value={formData.jaringanSaluran?.panjangTersierM ?? 0}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      jaringanSaluran: {
-                        ...(formData.jaringanSaluran as any),
-                        panjangTersierM: parseInt(e.target.value, 10) || 0,
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+                  {/* Saluran Sekunder */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Saluran Sekunder</span>
+                    <div className="space-y-1.5">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Panjang (Meter)</label>
+                        <input
+                          type="number"
+                          value={formData.jaringanSaluran?.panjangSekunderM ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              panjangSekunderM: parseInt(e.target.value, 10) || 0,
+                            },
+                          })}
+                          placeholder="Contoh: 5000"
+                          className="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
+                        <select
+                          value={formData.jaringanSaluran?.kondisiSekunder || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              kondisiSekunder: e.target.value as KondisiFisik,
+                            },
+                          })}
+                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Saluran Tersier */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Saluran Tersier / Pembuang</span>
+                    <div className="space-y-1.5">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Panjang (Meter)</label>
+                        <input
+                          type="number"
+                          value={formData.jaringanSaluran?.panjangTersierM ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              panjangTersierM: parseInt(e.target.value, 10) || 0,
+                            },
+                          })}
+                          placeholder="Contoh: 8000"
+                          className="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Penilaian Kondisi</label>
+                        <select
+                          value={formData.jaringanSaluran?.kondisiTersier || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              kondisiTersier: e.target.value as KondisiFisik,
+                            },
+                          })}
+                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Bangunan Bagi (Unit)</label>
-                  <input
-                    type="number"
-                    value={formData.jaringanSaluran?.jumlahBangunanBagi ?? 2}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      jaringanSaluran: {
-                        ...(formData.jaringanSaluran as any),
-                        jumlahBangunanBagi: parseInt(e.target.value, 10) || 0,
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+              {/* Bagian 2: Bangunan Pengatur & Pembagi Aliran Air */}
+              <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    2. Bangunan Pengatur, Pembagi & Silang Saluran
+                  </h4>
+                  <span className="text-[10px] text-slate-500 font-medium">Jumlah Unit & Penilaian Kondisi Fisik</span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Bangunan Sadap (Unit)</label>
-                  <input
-                    type="number"
-                    value={formData.jaringanSaluran?.jumlahBangunanSadap ?? 4}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      jaringanSaluran: {
-                        ...(formData.jaringanSaluran as any),
-                        jumlahBangunanSadap: parseInt(e.target.value, 10) || 0,
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {/* Bangunan Bagi (B) */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Bangunan Bagi (B)</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={formData.jaringanSaluran?.jumlahBangunanBagi ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              jumlahBangunanBagi: parseInt(e.target.value, 10) || 0,
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={formData.jaringanSaluran?.kondisiBangunanBagi || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              kondisiBangunanBagi: e.target.value as KondisiFisik,
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Gorong-gorong (Unit)</label>
-                  <input
-                    type="number"
-                    value={formData.jaringanSaluran?.jumlahGorongGorong ?? 5}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      jaringanSaluran: {
-                        ...(formData.jaringanSaluran as any),
-                        jumlahGorongGorong: parseInt(e.target.value, 10) || 0,
-                      },
-                    })}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
+                  {/* Bangunan Sadap (S) */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Bangunan Sadap (S)</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={formData.jaringanSaluran?.jumlahBangunanSadap ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              jumlahBangunanSadap: parseInt(e.target.value, 10) || 0,
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={formData.jaringanSaluran?.kondisiBangunanSadap || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              kondisiBangunanSadap: e.target.value as KondisiFisik,
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bangunan Bagi-Sadap (BS) */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Bangunan Bagi-Sadap (BS)</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={formData.jaringanSaluran?.jumlahBangunanBagiSadap ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              jumlahBangunanBagiSadap: parseInt(e.target.value, 10) || 0,
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={formData.jaringanSaluran?.kondisiBangunanBagiSadap || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              kondisiBangunanBagiSadap: e.target.value as KondisiFisik,
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gorong-gorong Pembawa */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Gorong-gorong Saluran</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={formData.jaringanSaluran?.jumlahGorongGorong ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              jumlahGorongGorong: parseInt(e.target.value, 10) || 0,
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={formData.jaringanSaluran?.kondisiGorongGorong || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              kondisiGorongGorong: e.target.value as KondisiFisik,
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Talang / Siphon Pembawa */}
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Talang / Siphon Saluran</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Jumlah Unit</label>
+                        <input
+                          type="number"
+                          value={formData.jaringanSaluran?.jumlahTalangSiphon ?? 0}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              jumlahTalangSiphon: parseInt(e.target.value, 10) || 0,
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Kondisi</label>
+                        <select
+                          value={formData.jaringanSaluran?.kondisiTalangSiphon || 'Baik'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            jaringanSaluran: {
+                              ...(formData.jaringanSaluran as any),
+                              kondisiTalangSiphon: e.target.value as KondisiFisik,
+                            },
+                          })}
+                          className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        >
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Sedang">Rusak Sedang</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

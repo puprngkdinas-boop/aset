@@ -633,27 +633,39 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div className="p-3 bg-white rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Talang Air (Aqueduct)</span>
-                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums">
+                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums block">
                       {bp?.bangunanSilangDetail?.talang || 0} Unit
                     </strong>
+                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(bp?.bangunanSilangDetail?.kondisiTalang || 'Baik')}`}>
+                      {bp?.bangunanSilangDetail?.kondisiTalang || 'Baik'}
+                    </span>
                   </div>
                   <div className="p-3 bg-white rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Siphon (Inverted Siphon)</span>
-                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums">
+                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums block">
                       {bp?.bangunanSilangDetail?.siphon || 0} Unit
                     </strong>
+                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(bp?.bangunanSilangDetail?.kondisiSiphon || 'Baik')}`}>
+                      {bp?.bangunanSilangDetail?.kondisiSiphon || 'Baik'}
+                    </span>
                   </div>
                   <div className="p-3 bg-white rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Gorong-gorong Pembawa</span>
-                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums">
+                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums block">
                       {bp?.bangunanSilangDetail?.gorongGorong || di.jaringanSaluran?.jumlahGorongGorong || 0} Unit
                     </strong>
+                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(bp?.bangunanSilangDetail?.kondisiGorongGorong || di.jaringanSaluran?.kondisiGorongGorong || 'Baik')}`}>
+                      {bp?.bangunanSilangDetail?.kondisiGorongGorong || di.jaringanSaluran?.kondisiGorongGorong || 'Baik'}
+                    </span>
                   </div>
                   <div className="p-3 bg-white rounded-lg border border-slate-200">
                     <span className="text-slate-500 block">Terjunan / Got Miring</span>
-                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums">
+                    <strong className="text-lg font-mono font-bold text-slate-900 tabular-nums block">
                       {bp?.bangunanSilangDetail?.gotMiringTerjunan || 0} Unit
                     </strong>
+                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(bp?.bangunanSilangDetail?.kondisiGotMiringTerjunan || 'Baik')}`}>
+                      {bp?.bangunanSilangDetail?.gotMiringTerjunan !== undefined ? (bp?.bangunanSilangDetail?.kondisiGotMiringTerjunan || 'Baik') : 'Baik'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -702,23 +714,50 @@ export const IrrigationDetailModal: React.FC<IrrigationDetailModalProps> = ({
                   Bangunan Pengatur & Pembagi Aliran Air
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <span className="text-slate-500 block">Bangunan Bagi</span>
-                    <strong className="text-base font-mono tabular-nums text-slate-900">
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block">Bangunan Bagi (B)</span>
+                    <strong className="text-base font-mono tabular-nums text-slate-900 block">
                       {di.jaringanSaluran?.jumlahBangunanBagi || 0} Unit
                     </strong>
+                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(di.jaringanSaluran?.kondisiBangunanBagi || 'Baik')}`}>
+                      {di.jaringanSaluran?.kondisiBangunanBagi || 'Baik'}
+                    </span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <span className="text-slate-500 block">Bangunan Sadap</span>
-                    <strong className="text-base font-mono tabular-nums text-slate-900">
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block">Bangunan Sadap (S)</span>
+                    <strong className="text-base font-mono tabular-nums text-slate-900 block">
                       {di.jaringanSaluran?.jumlahBangunanSadap || 0} Unit
                     </strong>
+                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(di.jaringanSaluran?.kondisiBangunanSadap || 'Baik')}`}>
+                      {di.jaringanSaluran?.kondisiBangunanSadap || 'Baik'}
+                    </span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <span className="text-slate-500 block">Bangunan Bagi Sadap</span>
-                    <strong className="text-base font-mono tabular-nums text-slate-900">
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block">Bangunan Bagi-Sadap (BS)</span>
+                    <strong className="text-base font-mono tabular-nums text-slate-900 block">
                       {di.jaringanSaluran?.jumlahBangunanBagiSadap || 0} Unit
                     </strong>
+                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(di.jaringanSaluran?.kondisiBangunanBagiSadap || 'Baik')}`}>
+                      {di.jaringanSaluran?.kondisiBangunanBagiSadap || 'Baik'}
+                    </span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block">Gorong-gorong Saluran</span>
+                    <strong className="text-base font-mono tabular-nums text-slate-900 block">
+                      {di.jaringanSaluran?.jumlahGorongGorong || 0} Unit
+                    </strong>
+                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(di.jaringanSaluran?.kondisiGorongGorong || 'Baik')}`}>
+                      {di.jaringanSaluran?.kondisiGorongGorong || 'Baik'}
+                    </span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block">Talang / Siphon Pembawa</span>
+                    <strong className="text-base font-mono tabular-nums text-slate-900 block">
+                      {di.jaringanSaluran?.jumlahTalangSiphon || 0} Unit
+                    </strong>
+                    <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold border ${getKondisiColor(di.jaringanSaluran?.kondisiTalangSiphon || 'Baik')}`}>
+                      {di.jaringanSaluran?.kondisiTalangSiphon || 'Baik'}
+                    </span>
                   </div>
                 </div>
               </div>

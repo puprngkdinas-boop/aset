@@ -89,9 +89,13 @@ export interface BangunanPelengkap {
   };
   bangunanSilangDetail: {
     talang: number;
+    kondisiTalang?: KondisiFisik;
     siphon: number;
+    kondisiSiphon?: KondisiFisik;
     gorongGorong: number;
+    kondisiGorongGorong?: KondisiFisik;
     gotMiringTerjunan: number;
+    kondisiGotMiringTerjunan?: KondisiFisik;
   };
 }
 
@@ -103,10 +107,15 @@ export interface JaringanSaluran {
   panjangTersierM: number;
   kondisiTersier: KondisiFisik;
   jumlahBangunanBagi: number;
+  kondisiBangunanBagi?: KondisiFisik;
   jumlahBangunanSadap: number;
+  kondisiBangunanSadap?: KondisiFisik;
   jumlahBangunanBagiSadap: number;
+  kondisiBangunanBagiSadap?: KondisiFisik;
   jumlahTalangSiphon: number;
+  kondisiTalangSiphon?: KondisiFisik;
   jumlahGorongGorong: number;
+  kondisiGorongGorong?: KondisiFisik;
 }
 
 export interface DataP3A {
