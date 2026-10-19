@@ -202,6 +202,108 @@ export function hitungTotalIKSI(rincian: RincianIKSI): { nilai: number; kategori
   return { nilai: total, kategori };
 }
 
+// Utility to calculate overall physical condition from Bangunan Utama, Pelengkap, Saluran, and OP/IKSI score
+export function hitungKondisiFisikUmum(di: Partial<DaerahIrigasi>): KondisiFisik {
+  const scores: number[] = [];
+  const weights: number[] = [];
+
+  const condToScore = (c?: KondisiFisik): number | null => {
+    switch (c) {
+      case 'Baik': return 1;
+      case 'Rusak Ringan': return 2;
+      case 'Rusak Sedang': return 3;
+      case 'Rusak Berat': return 4;
+      default: return null; // 'Tidak Ada' or undefined
+    }
+  };
+
+  // 1. Bangunan Utama (weight 2)
+  if (di.bangunanUtama?.kondisi) {
+    const s = condToScore(di.bangunanUtama.kondisi);
+    if (s !== null) {
+      scores.push(s);
+      weights.push(2);
+    }
+  }
+
+  // 2. Bangunan Pelengkap (weight 1 each)
+  const bp = di.bangunanPelengkap;
+  if (bp) {
+    const bpConditions: (KondisiFisik | undefined)[] = [
+      bp.jembatanDesaTani?.kondisi,
+      bp.kubanganCuciTernak?.kondisi,
+      bp.tanggaCuciMandiPetani?.kondisi,
+      bp.pelimpahSampingWasteweir?.kondisi,
+      bp.trashrackSaringanSampah?.kondisi,
+      bp.peilschaalSaluran?.kondisi,
+      bp.patokHektometerSempadan?.kondisi,
+      bp.garduJagaRumahPintu?.kondisi,
+      bp.jalanInspeksi?.kondisi,
+      bp.bangunanSilangDetail?.kondisiTalang,
+      bp.bangunanSilangDetail?.kondisiSiphon,
+      bp.bangunanSilangDetail?.kondisiGorongGorong,
+      bp.bangunanSilangDetail?.kondisiGotMiringTerjunan,
+    ];
+    bpConditions.forEach((c) => {
+      const s = condToScore(c);
+      if (s !== null) {
+        scores.push(s);
+        weights.push(1);
+      }
+    });
+  }
+
+  // 3. Saluran (weight 2 each)
+  const js = di.jaringanSaluran;
+  if (js) {
+    const jsConditions: (KondisiFisik | undefined)[] = [
+      js.kondisiPrimer,
+      js.kondisiSekunder,
+      js.kondisiTersier,
+      js.kondisiBangunanBagi,
+      js.kondisiBangunanSadap,
+      js.kondisiBangunanBagiSadap,
+      js.kondisiTalangSiphon,
+      js.kondisiGorongGorong,
+    ];
+    jsConditions.forEach((c) => {
+      const s = condToScore(c);
+      if (s !== null) {
+        scores.push(s);
+        weights.push(2);
+      }
+    });
+  }
+
+  // 4. OP / IKSI score (weight 2)
+  if (di.nilaiIKSI !== undefined) {
+    let iksiScore = 1;
+    if (di.nilaiIKSI < 55) iksiScore = 4;
+    else if (di.nilaiIKSI < 70) iksiScore = 3;
+    else if (di.nilaiIKSI < 77.5) iksiScore = 2;
+    else iksiScore = 1;
+
+    scores.push(iksiScore);
+    weights.push(2);
+  }
+
+  if (scores.length === 0) return 'Baik';
+
+  let totalWeightedScore = 0;
+  let totalWeight = 0;
+  for (let i = 0; i < scores.length; i++) {
+    totalWeightedScore += scores[i] * weights[i];
+    totalWeight += weights[i];
+  }
+
+  const avg = totalWeightedScore / totalWeight;
+
+  if (avg >= 3.5) return 'Rusak Berat';
+  if (avg >= 2.5) return 'Rusak Sedang';
+  if (avg >= 1.5) return 'Rusak Ringan';
+  return 'Baik';
+}
+
 export const KECAMATAN_NAGEKEO_LIST: KecamatanNagekeo[] = [
   'Aesesa',
   'Aesesa Selatan',

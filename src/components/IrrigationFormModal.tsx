@@ -13,7 +13,8 @@ import {
   SumberDana,
   StatusUsulan,
   KeaktifanIuran,
-  hitungTotalIKSI
+  hitungTotalIKSI,
+  hitungKondisiFisikUmum
 } from '../types/irigasi';
 import { getDaftarDesa } from '../data/wilayahNagekeo';
 import { X, Save, Building, Layers, Zap, CheckCircle2, Table, MapPin } from 'lucide-react';
@@ -445,7 +446,7 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
         lat: Number(formData.koordinat?.lat) || -8.67,
         lng: Number(formData.koordinat?.lng) || 121.28,
       },
-      kondisiFisik: (formData.kondisiFisik as KondisiFisik) || 'Baik',
+      kondisiFisik: hitungKondisiFisikUmum(formData),
       nilaiIKSI: Number(formData.nilaiIKSI) || 70,
       kategoriIKSI: formData.kategoriIKSI || 'Baik',
       rincianIKSI: formData.rincianIKSI || {
@@ -746,19 +747,19 @@ export const IrrigationFormModal: React.FC<IrrigationFormModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Kondisi Fisik Keseluruhan
+                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+                    <span>Kondisi Fisik Keseluruhan</span>
+                    <span className="text-[10px] text-amber-700 font-medium">Auto-Kalkulasi Sistem</span>
                   </label>
-                  <select
-                    value={formData.kondisiFisik || 'Baik'}
-                    onChange={(e) => setFormData({ ...formData, kondisiFisik: e.target.value as KondisiFisik })}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  >
-                    <option value="Baik">Baik</option>
-                    <option value="Rusak Ringan">Rusak Ringan</option>
-                    <option value="Rusak Sedang">Rusak Sedang</option>
-                    <option value="Rusak Berat">Rusak Berat</option>
-                  </select>
+                  <div className={`w-full px-3 py-2 text-xs rounded-lg font-bold border flex items-center justify-between ${
+                    hitungKondisiFisikUmum(formData) === 'Baik' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                    hitungKondisiFisikUmum(formData) === 'Rusak Ringan' ? 'bg-blue-50 text-blue-800 border-blue-300' :
+                    hitungKondisiFisikUmum(formData) === 'Rusak Sedang' ? 'bg-amber-50 text-amber-800 border-amber-300' :
+                    'bg-rose-50 text-rose-800 border-rose-300'
+                  }`}>
+                    <span>{hitungKondisiFisikUmum(formData)}</span>
+                    <span className="text-[10px] font-normal text-slate-500 font-sans">Dihitung dari Utama, Pelengkap, Saluran &amp; OP</span>
+                  </div>
                 </div>
               </div>
 
