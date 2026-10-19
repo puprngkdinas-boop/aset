@@ -19,22 +19,15 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Default admin password for Dinas PUPR Nagekeo
-    if (password === 'admin123' || password === 'puprnagekeo' || password === 'nagekeo2026') {
+    // Admin password for Dinas PUPR Nagekeo (SDA)
+    if (password === 'SDANAGEKEO2026') {
       setError('');
       setPassword('');
       onLoginSuccess();
       onClose();
     } else {
-      setError('Password salah! Gunakan password admin PUPR yang sah.');
+      setError('Password salah! Masukkan password administrator SDA Nagekeo yang sah.');
     }
-  };
-
-  const handleQuickLogin = () => {
-    setPassword('');
-    setError('');
-    onLoginSuccess();
-    onClose();
   };
 
   return (
@@ -56,7 +49,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           </div>
           <h3 className="text-lg font-bold">Login Administrator Dinas</h3>
           <p className="text-xs text-slate-400 mt-1">
-            Akses khusus Pejabat / Administrator Dinas PUPR Kab. Nagekeo untuk mengelola data irigasi & publikasi.
+            Akses khusus Pejabat / Administrator Dinas PUPR Kab. Nagekeo (Bidang SDA) untuk mengelola data irigasi &amp; publikasi.
           </p>
         </div>
 
@@ -82,30 +75,19 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password admin..."
-                className="w-full pl-10 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"
+                className="w-full pl-10 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono tracking-widest"
                 autoFocus
               />
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5">
-              Hint demo: ketik <code className="bg-slate-100 text-amber-700 px-1 py-0.5 rounded font-mono">admin123</code> atau gunakan tombol login instan di bawah.
-            </p>
           </div>
 
-          <div className="pt-2 flex flex-col gap-2">
+          <div className="pt-2">
             <button
               type="submit"
               className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <UserCheck className="w-4 h-4 text-amber-400" />
               <span>Masuk Sebagai Admin</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleQuickLogin}
-              className="w-full py-2 px-4 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-xs rounded-xl border border-amber-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <span>🚀 Login Instan (Demo Admin PUPR)</span>
             </button>
           </div>
         </form>
